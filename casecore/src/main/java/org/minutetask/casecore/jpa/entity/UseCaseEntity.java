@@ -20,7 +20,16 @@ package org.minutetask.casecore.jpa.entity;
  * =========================LICENSE_END==================================
  */
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +39,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,14 +63,79 @@ public class UseCaseEntity {
     @ToString.Include
     private Long id = null;
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @Lob
-    @Column(name = "param_map", length = 100000)
-    private String paramMapAsJson = null;
+    @Column(name = "parameters", length = 100000)
+    private String parametersAsJson = null;
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @Lob
-    @Column(name = "service_map", length = 100000)
-    private String serviceMapAsJson = null;
+    @Column(name = "services", length = 100000)
+    private String servicesAsJson = null;
 
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY)
     private List<UseCaseKeyEntity> useCaseKeys = null;
+
+    //
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final TypeReference<Map<String, Object>> PARAMETERS_TYPE_REFERENCE = //
+            new TypeReference<Map<String, Object>>() {
+            };
+
+    private static final TypeReference<Map<String, String>> SERVICES_TYPE_REFERENCE = //
+            new TypeReference<Map<String, String>>() {
+            };
+
+    //
+
+    @Transient
+    private Map<String, Object> parameters = new HashMap<String, Object>();
+
+    @Transient
+    private Map<Class<?>, String> services = new HashMap<Class<?>, String>();
+
+    @PostLoad
+    public void postLoad() {
+        try {
+            parameters = new HashMap<String, Object>();
+            if (StringUtils.isNotEmpty(parametersAsJson)) {
+                parameters.putAll(objectMapper.readValue(parametersAsJson, PARAMETERS_TYPE_REFERENCE));
+            }
+            //
+            services = new HashMap<Class<?>, String>();
+            if (StringUtils.isNotEmpty(servicesAsJson)) {
+                Map<String, String> tmpServices = objectMapper.readValue(parametersAsJson, SERVICES_TYPE_REFERENCE);
+                for (Map.Entry<String, String> entry : tmpServices.entrySet()) {
+                    services.put(Class.forName(entry.getKey()), entry.getValue());
+                }
+            }
+        } catch (JsonProcessingException | ClassNotFoundException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    public void applyChanges() {
+        try {
+            parametersAsJson = null;
+            if (MapUtils.isNotEmpty(parameters)) {
+                parametersAsJson = objectMapper.writeValueAsString(parameters);
+            }
+            //
+            servicesAsJson = null;
+            if (MapUtils.isNotEmpty(services)) {
+                Map<String, String> tmpServices = new HashMap<String, String>();
+                for (Map.Entry<Class<?>, String> entry : services.entrySet()) {
+                    tmpServices.put(entry.getKey().getName(), entry.getValue());
+                }
+                //
+                servicesAsJson = objectMapper.writeValueAsString(tmpServices);
+            }
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
 }
