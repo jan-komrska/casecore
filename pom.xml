@@ -79,7 +79,7 @@
                         <configuration>
                             <licenseName>apache_v2</licenseName>
                             <organizationName>Jan Komrska</organizationName>
-                            <inceptionYear>2024</inceptionYear>
+                            <inceptionYear>2025</inceptionYear>
                             <processStartTag>========================LICENSE_START=================================</processStartTag>
                             <processEndTag>=========================LICENSE_END==================================</processEndTag>
                             <roots>
