@@ -66,14 +66,8 @@ public class UseCaseEntity {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Lob
-    @Column(name = "parameters", length = 100000)
-    private String parametersAsJson = null;
-
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    @Lob
-    @Column(name = "services", length = 100000)
-    private String servicesAsJson = null;
+    @Column(name = "data", length = 100000)
+    private String dataAsJson = null;
 
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY)
     private List<UseCaseKeyEntity> useCaseKeys = null;
@@ -82,15 +76,18 @@ public class UseCaseEntity {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final TypeReference<Map<String, Object>> PARAMETERS_TYPE_REFERENCE = //
+    private static final TypeReference<Map<String, Object>> DATA_REFERENCE = //
             new TypeReference<Map<String, Object>>() {
             };
 
-    private static final TypeReference<Map<String, String>> SERVICES_TYPE_REFERENCE = //
-            new TypeReference<Map<String, String>>() {
-            };
+    private static final String KEYS_ATTRIBUTE = "keys";
+    private static final String PARAMETERS_ATTRIBUTE = "parameters";
+    private static final String SERVICES_ATTRIBUTE = "parameters";
 
     //
+
+    @Transient
+    private Map<String, String> keys = new HashMap<String, String>();
 
     @Transient
     private Map<String, Object> parameters = new HashMap<String, Object>();
@@ -101,16 +98,31 @@ public class UseCaseEntity {
     @PostLoad
     public void postLoad() {
         try {
+            keys = new HashMap<String, String>();
             parameters = new HashMap<String, Object>();
-            if (StringUtils.isNotEmpty(parametersAsJson)) {
-                parameters.putAll(objectMapper.readValue(parametersAsJson, PARAMETERS_TYPE_REFERENCE));
-            }
-            //
             services = new HashMap<Class<?>, String>();
-            if (StringUtils.isNotEmpty(servicesAsJson)) {
-                Map<String, String> tmpServices = objectMapper.readValue(parametersAsJson, SERVICES_TYPE_REFERENCE);
-                for (Map.Entry<String, String> entry : tmpServices.entrySet()) {
-                    services.put(Class.forName(entry.getKey()), entry.getValue());
+            //
+            if (StringUtils.isNotEmpty(dataAsJson)) {
+                Map<String, Object> dataAsMap = objectMapper.readValue(dataAsJson, DATA_REFERENCE);
+                //
+                @SuppressWarnings("unchecked")
+                Map<String, String> tmpKeys = (Map<String, String>) dataAsMap.get(KEYS_ATTRIBUTE);
+                if (MapUtils.isNotEmpty(tmpKeys)) {
+                    keys.putAll(tmpKeys);
+                }
+                //
+                @SuppressWarnings("unchecked")
+                Map<String, Object> tmpParameters = (Map<String, Object>) dataAsMap.get(PARAMETERS_ATTRIBUTE);
+                if (MapUtils.isNotEmpty(tmpParameters)) {
+                    parameters.putAll(tmpParameters);
+                }
+                //
+                @SuppressWarnings("unchecked")
+                Map<String, String> tmpServices = (Map<String, String>) dataAsMap.get(SERVICES_ATTRIBUTE);
+                if (MapUtils.isNotEmpty(tmpServices)) {
+                    for (Map.Entry<String, String> entry : tmpServices.entrySet()) {
+                        services.put(Class.forName(entry.getKey()), entry.getValue());
+                    }
                 }
             }
         } catch (JsonProcessingException | ClassNotFoundException ex) {
@@ -120,19 +132,27 @@ public class UseCaseEntity {
 
     public void applyChanges() {
         try {
-            parametersAsJson = null;
-            if (MapUtils.isNotEmpty(parameters)) {
-                parametersAsJson = objectMapper.writeValueAsString(parameters);
-            }
+            Map<String, Object> dataAsMap = new HashMap<String, Object>();
             //
-            servicesAsJson = null;
+            if (MapUtils.isNotEmpty(keys)) {
+                dataAsMap.put(KEYS_ATTRIBUTE, new HashMap<String, String>(keys));
+            }
+            if (MapUtils.isNotEmpty(parameters)) {
+                dataAsMap.put(PARAMETERS_ATTRIBUTE, new HashMap<String, Object>(parameters));
+            }
             if (MapUtils.isNotEmpty(services)) {
                 Map<String, String> tmpServices = new HashMap<String, String>();
                 for (Map.Entry<Class<?>, String> entry : services.entrySet()) {
                     tmpServices.put(entry.getKey().getName(), entry.getValue());
                 }
                 //
-                servicesAsJson = objectMapper.writeValueAsString(tmpServices);
+                dataAsMap.put(SERVICES_ATTRIBUTE, tmpServices);
+            }
+            //
+            if (MapUtils.isNotEmpty(dataAsMap)) {
+                dataAsJson = objectMapper.writeValueAsString(dataAsMap);
+            } else {
+                dataAsJson = null;
             }
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
