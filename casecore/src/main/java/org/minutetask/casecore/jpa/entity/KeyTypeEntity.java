@@ -4,7 +4,7 @@ package org.minutetask.casecore.jpa.entity;
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
  * %%
- * Copyright (C) 2024 - 2025 Jan Komrska
+ * Copyright (C) 2025 Jan Komrska
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@ package org.minutetask.casecore.jpa.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,30 +34,22 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "cc_usecasekey", indexes = { //
-        @Index(name = "ccux_usecasekey", columnList = "type, value", unique = true) //
+@Table(name = "cc_keytype", indexes = { //
+        @Index(name = "ccux_keytype", columnList = "name", unique = true) //
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString(onlyExplicitlyIncluded = true)
-public class UseCaseKeyEntity {
+public class KeyTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     @ToString.Include
     private Long id = null;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usecase_id", nullable = false)
-    private UseCaseEntity useCase = null;
-
-    @Column(name = "type", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     @ToString.Include
-    private Long type;
-
-    @Column(name = "value", nullable = false, length = 50)
-    @ToString.Include
-    private String value;
+    private String name;
 }

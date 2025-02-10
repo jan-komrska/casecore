@@ -59,14 +59,14 @@ import lombok.ToString;
 public class UseCaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     @ToString.Include
     private Long id = null;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Lob
-    @Column(name = "data", length = 100000)
+    @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
 
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY)
@@ -82,7 +82,7 @@ public class UseCaseEntity {
 
     private static final String KEYS_ATTRIBUTE = "keys";
     private static final String PARAMETERS_ATTRIBUTE = "parameters";
-    private static final String SERVICES_ATTRIBUTE = "parameters";
+    private static final String SERVICES_ATTRIBUTE = "services";
 
     //
 
