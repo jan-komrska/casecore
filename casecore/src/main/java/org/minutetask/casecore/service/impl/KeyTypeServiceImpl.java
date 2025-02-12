@@ -23,12 +23,14 @@ package org.minutetask.casecore.service.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.minutetask.casecore.exception.NotFoundException;
+import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.KeyTypeEntity;
 import org.minutetask.casecore.jpa.repository.KeyTypeRepository;
 import org.minutetask.casecore.service.api.KeyTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.PersistenceException;
 
 @Service
+@Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class KeyTypeServiceImpl implements KeyTypeService {
     @Autowired
     private KeyTypeServiceImpl self;
@@ -43,7 +46,7 @@ public class KeyTypeServiceImpl implements KeyTypeService {
     @Autowired
     private KeyTypeRepository keyTypeRepository;
 
-    @Value("case-core.key-type.provisioning.repeat-count:2")
+    @Value("case-core.key-type.provisioning.repeat-count:3")
     private int repeatCount;
     @Value("case-core.key-type.provisioning.repeat-delay:100")
     private int repeatDelay;
@@ -73,7 +76,8 @@ public class KeyTypeServiceImpl implements KeyTypeService {
 
     @Override
     public Long getKeyTypeId(String type) {
-        // TODO
+        PersistenceException exception = null;
+        //
         for (int index = 0; index < repeatCount; index++) {
             try {
                 Long cachedId = keyTypeMap.get(type);
@@ -91,16 +95,16 @@ public class KeyTypeServiceImpl implements KeyTypeService {
                     return newId;
                 }
             } catch (PersistenceException ex) {
-                // DO NOTHING
+                exception = ex;
             }
             //
             try {
                 Thread.sleep(repeatDelay);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ex) {
                 // DO NOTHING
             }
         }
         //
-        throw new NotFoundException();
+        throw new UnexpectedException(exception);
     }
 }
