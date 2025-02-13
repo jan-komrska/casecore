@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.minutetask.casecore.annotation.Key;
 import org.minutetask.casecore.annotation.ServiceRef;
+import org.minutetask.casecore.exception.UnexpectedException;
 
 /*-
  * ========================LICENSE_START=================================
@@ -36,21 +37,15 @@ import org.minutetask.casecore.service.api.UseCaseManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 //TODO
 @Transactional
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseManagerImpl implements UseCaseManager {
-    private static final TypeReference<Map<String, Object>> PARAMETERS_REFERENCE = //
-            new TypeReference<Map<String, Object>>() {
-            };
-
     @Autowired
     private KeyTypeRepository keyTypeRepository;
 
@@ -58,33 +53,42 @@ public class UseCaseManagerImpl implements UseCaseManager {
     private UseCaseRepository useCaseRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ConversionService conversionService;
 
     @Override
     public UseCaseEntity createUseCase(Object data) {
         UseCaseEntity useCase = new UseCaseEntity();
         //
-        List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        for (Field parameterField : parameterFields) {
-            String parameterName = parameterField.getName();
-            Object parameterValue = FieldUtils.getField(data.getClass(), parameterField.getName(), true);
-            parameters.put(parameterName, parameterValue);
+        try {
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
+            for (Field parameterField : parameterFields) {
+                String parameterName = parameterField.getName();
+                Object parameterValue = FieldUtils.readField(parameterField, data, true);
+                parameters.put(parameterName, parameterValue);
+            }
+            useCase.setParameters(parameters);
+            //
+            Map<String, String> keys = new HashMap<String, String>();
+            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), Key.class);
+            for (Field keyField : keyFields) {
+                String keyType = keyField.getAnnotation(Key.class).type();
+                Object keyValue = FieldUtils.readField(keyField, data, true);
+                parameters.put(keyType, conversionService.convert(keyValue, String.class));
+            }
+            useCase.setKeys(keys);
+            //
+            Map<Class<?>, String> services = new HashMap<Class<?>, String>();
+            List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
+            for (Field serviceField : serviceFields) {
+                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).contract();
+                String serviceName = (String) FieldUtils.readField(serviceField, data, true);
+                services.put(contractClass, serviceName);
+            }
+            useCase.setServices(services);
+        } catch (IllegalAccessException ex) {
+            throw new UnexpectedException(ex);
         }
-        useCase.setParameters(parameters);
-        //
-        List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), Key.class);
-        Map<String, String> keys = new HashMap<String, String>();
-        for (Field keyField : keyFields) {
-            String keyType = keyField.getAnnotation(Key.class).type();
-            Object keyValue = FieldUtils.getField(data.getClass(), keyField.getName(), true);
-            parameters.put(keyType, (String) keyValue);
-        }
-        useCase.setParameters(parameters);
-        //ConvertU
-        //
-        List<Field> serviceRefFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
-        FieldUtils.getField(getClass(), null);
         //
         useCase = useCaseRepository.save(useCase);
         return useCase;
@@ -92,13 +96,12 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     public UseCaseEntity getUseCase(Long id) {
-        // TODO Auto-generated method stub
-        return null;
+        return useCaseRepository.findById(id).orElse(null);
     }
 
     @Override
     public UseCaseEntity getUseCase(String keyType, String keyValue) {
-        // TODO Auto-generated method stub
+        // TODO
         return null;
     }
 
