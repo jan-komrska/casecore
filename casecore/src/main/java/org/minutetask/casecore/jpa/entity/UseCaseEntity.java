@@ -41,6 +41,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
+import jakarta.persistence.TableGenerator;
 import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -58,9 +59,13 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class UseCaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "cc_usecase_id")
     @Column(name = "id", nullable = false)
     @ToString.Include
+    @TableGenerator( //
+            name = "cc_usecase_id", table = "cc_sequence", //
+            pkColumnValue = "cc_usecase_id", initialValue = 1, allocationSize = 50 //
+    )
     private Long id = null;
 
     @Getter(AccessLevel.NONE)

@@ -30,6 +30,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.TableGenerator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,9 +48,13 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class UseCaseKeyEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "cc_usecasekey_id")
     @Column(name = "id", nullable = false)
     @ToString.Include
+    @TableGenerator( //
+            name = "cc_usecasekey_id", table = "cc_sequence", //
+            pkColumnValue = "cc_usecasekey_id", initialValue = 1, allocationSize = 50 //
+    )
     private Long id = null;
 
     @ManyToOne(fetch = FetchType.EAGER)
