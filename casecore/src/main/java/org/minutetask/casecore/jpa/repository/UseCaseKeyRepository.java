@@ -26,5 +26,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UseCaseKeyRepository extends JpaRepository<UseCaseKeyEntity, Long> {
-    public UseCaseKeyEntity findByTypeAndValue(String type, String value);
+    public UseCaseKeyEntity findByTypeAndValue(Long type, String value);
 }

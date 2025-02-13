@@ -31,8 +31,10 @@ import org.minutetask.casecore.exception.UnexpectedException;
  */
 
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
-import org.minutetask.casecore.jpa.repository.KeyTypeRepository;
+import org.minutetask.casecore.jpa.entity.UseCaseKeyEntity;
+import org.minutetask.casecore.jpa.repository.UseCaseKeyRepository;
 import org.minutetask.casecore.jpa.repository.UseCaseRepository;
+import org.minutetask.casecore.service.api.KeyTypeService;
 import org.minutetask.casecore.service.api.UseCaseManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -47,10 +49,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseManagerImpl implements UseCaseManager {
     @Autowired
-    private KeyTypeRepository keyTypeRepository;
+    private KeyTypeService keyTypeService;
 
     @Autowired
     private UseCaseRepository useCaseRepository;
+
+    @Autowired
+    private UseCaseKeyRepository useCaseKeyRepository;
 
     @Autowired
     private ConversionService conversionService;
@@ -101,8 +106,13 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     public UseCaseEntity getUseCase(String keyType, String keyValue) {
-        // TODO
-        return null;
+        Long keyTypeId = keyTypeService.getKeyTypeId(keyType);
+        UseCaseKeyEntity useCaseKeyEntity = useCaseKeyRepository.findByTypeAndValue(keyTypeId, keyValue);
+        if (useCaseKeyEntity != null) {
+            return useCaseKeyEntity.getUseCase();
+        } else {
+            return null;
+        }
     }
 
     @Override
