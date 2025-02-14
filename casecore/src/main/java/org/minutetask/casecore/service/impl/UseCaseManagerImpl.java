@@ -84,7 +84,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             for (Field keyField : keyFields) {
                 String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
-                parameters.put(keyType, conversionService.convert(keyValue, String.class));
+                keys.put(keyType, conversionService.convert(keyValue, String.class));
             }
             useCase.setKeys(keys);
             //
@@ -96,6 +96,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 services.put(contractClass, serviceName);
             }
             useCase.setServices(services);
+            //
+            useCase.applyChanges();
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
         }
@@ -138,7 +140,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             for (Field keyField : keyFields) {
                 String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
-                parameters.put(keyType, conversionService.convert(keyValue, String.class));
+                keys.put(keyType, conversionService.convert(keyValue, String.class));
             }
             useCase.getKeys().putAll(keys);
             //
@@ -150,6 +152,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 services.put(contractClass, serviceName);
             }
             useCase.getServices().putAll(services);
+            //
+            useCase.applyChanges();
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
         }
@@ -173,7 +177,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 String parameterName = parameterField.getName();
                 Object parameterValue = parameters.get(parameterName);
                 parameterValue = conversionService.convert(parameterValue, parameterField.getType());
-                FieldUtils.writeField(parameterField, data, parameterValue);
+                FieldUtils.writeField(parameterField, data, parameterValue, true);
             }
             //
             Map<String, String> keys = MapUtils.emptyIfNull(useCase.getKeys());
@@ -182,7 +186,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = keys.get(keyType);
                 keyValue = conversionService.convert(keyValue, keyField.getType());
-                FieldUtils.writeField(keyField, data, keyValue);
+                FieldUtils.writeField(keyField, data, keyValue, true);
             }
             //
             Map<Class<?>, String> services = MapUtils.emptyIfNull(useCase.getServices());
@@ -190,7 +194,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).contract();
                 String serviceName = services.get(contractClass);
-                FieldUtils.writeField(serviceField, data, serviceName);
+                FieldUtils.writeField(serviceField, data, serviceName, true);
             }
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
