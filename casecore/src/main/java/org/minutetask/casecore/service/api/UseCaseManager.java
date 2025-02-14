@@ -22,7 +22,6 @@ package org.minutetask.casecore.service.api;
 
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 
-// TODO
 public interface UseCaseManager {
     public UseCaseEntity createUseCase(Object data);
 
@@ -30,7 +29,9 @@ public interface UseCaseManager {
 
     public UseCaseEntity getUseCase(String keyType, String keyValue);
 
-    public void updateUseCase(UseCaseEntity useCase, Object data);
+    public UseCaseEntity updateUseCase(UseCaseEntity useCase, Object data);
+
+    public <Data> Data getUseCaseData(UseCaseEntity useCase, Class<Data> dataClass);
 
     public void deleteUseCase(Long id);
 }
