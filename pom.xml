@@ -115,7 +115,7 @@
         <profile>
             <id>development</id>
             <modules>
-                <!--module>test-application</module-->
+                <module>test-application</module>
             </modules>
         </profile>
 
