@@ -30,6 +30,7 @@ import org.minutetask.casecore.service.api.KeyTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,15 +41,16 @@ import jakarta.persistence.PersistenceException;
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class KeyTypeServiceImpl implements KeyTypeService {
+    @Lazy
     @Autowired
     private KeyTypeServiceImpl self;
 
     @Autowired
     private KeyTypeRepository keyTypeRepository;
 
-    @Value("case-core.key-type.provisioning.repeat-count:3")
+    @Value("${case-core.key-type.provisioning.repeat-count:3}")
     private int repeatCount;
-    @Value("case-core.key-type.provisioning.repeat-delay:100")
+    @Value("${case-core.key-type.provisioning.repeat-delay:100}")
     private int repeatDelay;
 
     private Map<String, Long> keyTypeMap = new ConcurrentHashMap<String, Long>();

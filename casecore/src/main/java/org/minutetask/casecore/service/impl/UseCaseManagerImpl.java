@@ -38,13 +38,13 @@ import org.minutetask.casecore.jpa.repository.UseCaseRepository;
 import org.minutetask.casecore.service.api.KeyTypeService;
 import org.minutetask.casecore.service.api.UseCaseManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-//TODO
 @Transactional
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
@@ -58,6 +58,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
     @Autowired
     private UseCaseKeyRepository useCaseKeyRepository;
 
+    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::conversionServiceBean")
     @Autowired
     private ConversionService conversionService;
 
