@@ -33,5 +33,7 @@ public interface UseCaseManager {
 
     public <Data> Data getUseCaseData(UseCaseEntity useCase, Class<Data> dataClass);
 
+    public UseCaseEntity finishUseCase(UseCaseEntity useCase);
+
     public void deleteUseCase(Long id);
 }

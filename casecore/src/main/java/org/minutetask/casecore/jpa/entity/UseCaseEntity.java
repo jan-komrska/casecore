@@ -1,5 +1,7 @@
 package org.minutetask.casecore.jpa.entity;
 
+import java.time.LocalDateTime;
+
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -73,6 +75,18 @@ public class UseCaseEntity {
     @Lob
     @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = false;
+
+    @Column(name = "created_date", nullable = false)
+    private LocalDateTime createdDate = null;
+
+    @Column(name = "updated_date", nullable = true)
+    private LocalDateTime updatedDate = null;
+
+    @Column(name = "finished_date", nullable = true)
+    private LocalDateTime finishedDate = null;
 
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY)
     private List<UseCaseKeyEntity> useCaseKeys = null;

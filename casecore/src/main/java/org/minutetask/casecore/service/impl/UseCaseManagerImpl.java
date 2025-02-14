@@ -21,6 +21,7 @@ package org.minutetask.casecore.service.impl;
  */
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
     @Override
     public UseCaseEntity createUseCase(Object data) {
         UseCaseEntity useCase = new UseCaseEntity();
+        useCase.setActive(true);
+        useCase.setCreatedDate(LocalDateTime.now());
         //
         try {
             Map<String, Object> parameters = new HashMap<String, Object>();
@@ -118,6 +121,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     public UseCaseEntity updateUseCase(UseCaseEntity useCase, Object data) {
+        useCase.setUpdatedDate(LocalDateTime.now());
+        //
         try {
             Map<String, Object> parameters = new HashMap<String, Object>();
             List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
@@ -192,6 +197,13 @@ public class UseCaseManagerImpl implements UseCaseManager {
         }
         //
         return dataClass.cast(data);
+    }
+
+    @Override
+    public UseCaseEntity finishUseCase(UseCaseEntity useCase) {
+        useCase.setActive(false);
+        useCase.setFinishedDate(LocalDateTime.now());
+        return useCaseRepository.save(useCase);
     }
 
     @Override
