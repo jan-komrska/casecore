@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.minutetask.casecore.annotation.Internal;
+import org.minutetask.casecore.annotation.InternalRef;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
@@ -56,7 +56,7 @@ public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
                 new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        if (method.isDefault() && method.isAnnotationPresent(Internal.class)) {
+                        if (method.isDefault() && method.isAnnotationPresent(InternalRef.class)) {
                             return InvocationHandler.invokeDefault(proxy, method, args);
                         }
                         // TODO

@@ -28,7 +28,7 @@ import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.minutetask.casecore.annotation.Key;
+import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.annotation.ServiceRef;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
@@ -76,9 +76,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
             useCase.setParameters(parameters);
             //
             Map<String, String> keys = new HashMap<String, String>();
-            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), Key.class);
+            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(Key.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
                 parameters.put(keyType, conversionService.convert(keyValue, String.class));
             }
@@ -128,9 +128,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
             useCase.getParameters().putAll(parameters);
             //
             Map<String, String> keys = new HashMap<String, String>();
-            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), Key.class);
+            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(Key.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
                 parameters.put(keyType, conversionService.convert(keyValue, String.class));
             }
@@ -171,9 +171,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
             }
             //
             Map<String, String> keys = MapUtils.emptyIfNull(useCase.getKeys());
-            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), Key.class);
+            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(Key.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).type();
                 Object keyValue = keys.get(keyType);
                 keyValue = conversionService.convert(keyValue, keyField.getType());
                 FieldUtils.writeField(keyField, data, keyValue);
