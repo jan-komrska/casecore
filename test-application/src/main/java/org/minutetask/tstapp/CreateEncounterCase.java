@@ -35,9 +35,9 @@ public class CreateEncounterCase {
 
     private String encounterId;
 
-    @KeyRef(type = "CreateEncounterCase::tcn")
+    @KeyRef("CreateEncounterCase::tcn")
     private String tcn;
 
-    @ServiceRef(contract = Runnable.class)
+    @ServiceRef(Runnable.class)
     private String action;
 }

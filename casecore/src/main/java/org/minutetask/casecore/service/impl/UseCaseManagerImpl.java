@@ -82,7 +82,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<String, String> keys = new HashMap<String, String>();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(KeyRef.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).value();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
                 keys.put(keyType, conversionService.convert(keyValue, String.class));
             }
@@ -91,7 +91,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<Class<?>, String> services = new HashMap<Class<?>, String>();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
-                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).contract();
+                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
                 String serviceName = (String) FieldUtils.readField(serviceField, data, true);
                 services.put(contractClass, serviceName);
             }
@@ -138,7 +138,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<String, String> keys = new HashMap<String, String>();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(KeyRef.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).value();
                 Object keyValue = FieldUtils.readField(keyField, data, true);
                 keys.put(keyType, conversionService.convert(keyValue, String.class));
             }
@@ -147,7 +147,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<Class<?>, String> services = new HashMap<Class<?>, String>();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
-                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).contract();
+                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
                 String serviceName = (String) FieldUtils.readField(serviceField, data, true);
                 services.put(contractClass, serviceName);
             }
@@ -183,7 +183,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<String, String> keys = MapUtils.emptyIfNull(useCase.getKeys());
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(KeyRef.class).type();
+                String keyType = keyField.getAnnotation(KeyRef.class).value();
                 Object keyValue = keys.get(keyType);
                 keyValue = conversionService.convert(keyValue, keyField.getType());
                 FieldUtils.writeField(keyField, data, keyValue, true);
@@ -192,7 +192,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
             Map<Class<?>, String> services = MapUtils.emptyIfNull(useCase.getServices());
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
-                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).contract();
+                Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
                 String serviceName = services.get(contractClass);
                 FieldUtils.writeField(serviceField, data, serviceName, true);
             }
