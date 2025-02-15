@@ -25,12 +25,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.annotation.ServiceRef;
+import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseKeyEntity;
@@ -65,6 +68,15 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     private void updateUcData(UseCaseEntity useCase, Object data) {
         try {
+            List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
+            for (Field idField : idFields) {
+                Object idValue = FieldUtils.readField(idField, data, true);
+                idValue = conversionService.convert(idValue, Long.class);
+                if (!Objects.equals(useCase.getId(), idValue)) {
+                    throw new ConflictException();
+                }
+            }
+            //
             Map<String, Object> keys = new HashMap<String, Object>();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
@@ -131,6 +143,12 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 Object keyValue = keys.get(keyType);
                 keyValue = conversionService.convert(keyValue, keyField.getType());
                 FieldUtils.writeField(keyField, data, keyValue, true);
+            }
+            //
+            List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
+            for (Field idField : idFields) {
+                Object idValue = conversionService.convert(useCase.getId(), idField.getType());
+                FieldUtils.writeField(idField, data, idValue, true);
             }
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);

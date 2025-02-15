@@ -30,6 +30,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Import(CoreCaseConfiguration.class)
 @SpringBootApplication
 public class Application {
@@ -55,20 +58,26 @@ public class Application {
             UseCaseEntity useCaseEntity1 = useCaseManager.createUseCase(createEncounter1);
             //
             CreateEncounterCase createEncounter2 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            log.info("JK: " + createEncounter2.toString());
+            createEncounter2.setId(null);
             createEncounter2.setPersonId("personId-2.1");
             createEncounter2.setEncounterId("encounterId-2.1");
             UseCaseEntity useCaseEntity2 = useCaseManager.createUseCase(createEncounter2);
+            log.info("JK: " + createEncounter2.toString());
+            createEncounter2.setId(useCaseEntity2.getId());
             createEncounter2.setTcn("tcn-2.2");
             createEncounter2.setAction("action-2.2");
             useCaseEntity2 = useCaseManager.updateUseCase(useCaseEntity2, createEncounter2);
             //
             CreateEncounterCase createEncounter3 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            createEncounter3.setId(null);
             createEncounter3.setPersonId("personId-3.1");
             createEncounter3.setEncounterId("encounterId-3.1");
             UseCaseEntity useCaseEntity3 = useCaseManager.createUseCase(createEncounter3);
             useCaseManager.finishUseCase(useCaseEntity3);
             //
             CreateEncounterCase createEncounter4 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            createEncounter4.setId(null);
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             UseCaseEntity useCaseEntity4 = useCaseManager.createUseCase(createEncounter4);

@@ -1,5 +1,7 @@
 package org.minutetask.tstapp;
 
+import org.minutetask.casecore.annotation.IdRef;
+
 /*-
  * ========================LICENSE_START=================================
  * casecore-test-application
@@ -31,6 +33,9 @@ import lombok.ToString;
 @Setter
 @ToString
 public class CreateEncounterCase {
+    @IdRef
+    private Long id;
+
     private String personId;
 
     private String encounterId;
