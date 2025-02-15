@@ -106,7 +106,7 @@ public class UseCaseEntity {
     //
 
     @Transient
-    private Map<String, String> keys = new HashMap<String, String>();
+    private Map<String, Object> keys = new HashMap<String, Object>();
 
     @Transient
     private Map<String, Object> parameters = new HashMap<String, Object>();
@@ -117,7 +117,7 @@ public class UseCaseEntity {
     @PostLoad
     public void postLoad() {
         try {
-            keys = new HashMap<String, String>();
+            keys = new HashMap<String, Object>();
             parameters = new HashMap<String, Object>();
             services = new HashMap<Class<?>, String>();
             //
@@ -125,7 +125,7 @@ public class UseCaseEntity {
                 Map<String, Object> dataAsMap = objectMapper.readValue(dataAsJson, DATA_REFERENCE);
                 //
                 @SuppressWarnings("unchecked")
-                Map<String, String> tmpKeys = (Map<String, String>) dataAsMap.get(KEYS_ATTRIBUTE);
+                Map<String, Object> tmpKeys = (Map<String, Object>) dataAsMap.get(KEYS_ATTRIBUTE);
                 if (MapUtils.isNotEmpty(tmpKeys)) {
                     keys.putAll(tmpKeys);
                 }
@@ -140,7 +140,8 @@ public class UseCaseEntity {
                 Map<String, String> tmpServices = (Map<String, String>) dataAsMap.get(SERVICES_ATTRIBUTE);
                 if (MapUtils.isNotEmpty(tmpServices)) {
                     for (Map.Entry<String, String> entry : tmpServices.entrySet()) {
-                        services.put(Class.forName(entry.getKey()), entry.getValue());
+                        Class<?> contractClass = Class.forName(entry.getKey(), true, Thread.currentThread().getContextClassLoader());
+                        services.put(contractClass, entry.getValue());
                     }
                 }
             }
@@ -154,7 +155,7 @@ public class UseCaseEntity {
             Map<String, Object> dataAsMap = new HashMap<String, Object>();
             //
             if (MapUtils.isNotEmpty(keys)) {
-                dataAsMap.put(KEYS_ATTRIBUTE, new HashMap<String, String>(keys));
+                dataAsMap.put(KEYS_ATTRIBUTE, new HashMap<String, Object>(keys));
             }
             if (MapUtils.isNotEmpty(parameters)) {
                 dataAsMap.put(PARAMETERS_ATTRIBUTE, new HashMap<String, Object>(parameters));
@@ -162,7 +163,8 @@ public class UseCaseEntity {
             if (MapUtils.isNotEmpty(services)) {
                 Map<String, String> tmpServices = new HashMap<String, String>();
                 for (Map.Entry<Class<?>, String> entry : services.entrySet()) {
-                    tmpServices.put(entry.getKey().getName(), entry.getValue());
+                    String contractClass = entry.getKey().getName();
+                    tmpServices.put(contractClass, entry.getValue());
                 }
                 //
                 dataAsMap.put(SERVICES_ATTRIBUTE, tmpServices);
