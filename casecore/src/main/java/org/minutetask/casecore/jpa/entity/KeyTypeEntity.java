@@ -50,7 +50,7 @@ public class KeyTypeEntity {
     @ToString.Include
     @TableGenerator( //
             name = "cc_keytype_id", table = "cc_sequence", //
-            pkColumnValue = "cc_keytype_id", initialValue = 1, allocationSize = 50 //
+            pkColumnValue = "cc_keytype_id", initialValue = 1, allocationSize = 5 //
     )
     private Long id = null;
 
