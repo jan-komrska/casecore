@@ -41,7 +41,7 @@ import org.minutetask.casecore.jpa.entity.UseCaseKeyEntity;
 import org.minutetask.casecore.jpa.repository.UseCaseKeyRepository;
 import org.minutetask.casecore.jpa.repository.UseCaseRepository;
 import org.minutetask.casecore.service.api.KeyTypeService;
-import org.minutetask.casecore.service.api.UseCaseManager;
+import org.minutetask.casecore.service.api.UseCaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
-public class UseCaseManagerImpl implements UseCaseManager {
+public class UseCaseServiceImpl implements UseCaseService {
     @Autowired
     private KeyTypeService keyTypeService;
 

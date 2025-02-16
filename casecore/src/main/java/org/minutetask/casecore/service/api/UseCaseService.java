@@ -22,7 +22,7 @@ package org.minutetask.casecore.service.api;
 
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 
-public interface UseCaseManager {
+public interface UseCaseService {
     public UseCaseEntity createUseCase(Object data);
 
     public UseCaseEntity getUseCase(Long id);

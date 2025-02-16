@@ -1,4 +1,4 @@
-package org.minutetask.casecore.service.api;
+package org.minutetask.casecore;
 
 /*-
  * ========================LICENSE_START=================================
