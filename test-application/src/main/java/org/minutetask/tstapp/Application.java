@@ -53,21 +53,20 @@ public class Application {
             CreateEncounterCase createEncounter1 = new CreateEncounterCase();
             createEncounter1.setPersonId("personId-1");
             createEncounter1.setEncounterId("encounterId-1");
-            createEncounter1.setTcn("tcn-1");
             createEncounter1.setAction("action-1");
             UseCaseEntity useCaseEntity1 = useCaseManager.createUseCase(createEncounter1);
             //
             CreateEncounterCase createEncounter2 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
-            log.info("JK: " + createEncounter2.toString());
             createEncounter2.setId(null);
             createEncounter2.setTcn("tcn-2.1");
             createEncounter2.setPersonId("personId-2.1");
             createEncounter2.setEncounterId("encounterId-2.1");
+            log.info("record: " + createEncounter2);
             UseCaseEntity useCaseEntity2 = useCaseManager.createUseCase(createEncounter2);
-            log.info("JK: " + createEncounter2.toString());
             createEncounter2.setId(useCaseEntity2.getId());
             createEncounter2.setTcn("tcn-2.2");
             createEncounter2.setAction("action-2.2");
+            log.info("record: " + createEncounter2);
             useCaseEntity2 = useCaseManager.updateUseCase(useCaseEntity2, createEncounter2);
             //
             CreateEncounterCase createEncounter3 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
@@ -80,7 +79,6 @@ public class Application {
             //
             CreateEncounterCase createEncounter4 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter4.setId(null);
-            createEncounter4.setTcn("tcn-4.1");
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             UseCaseEntity useCaseEntity4 = useCaseManager.createUseCase(createEncounter4);

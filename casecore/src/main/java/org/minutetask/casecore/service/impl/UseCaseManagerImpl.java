@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.minutetask.casecore.annotation.IdRef;
@@ -121,6 +122,10 @@ public class UseCaseManagerImpl implements UseCaseManager {
         for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
             Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
             String keyValue = conversionService.convert(entry.getValue(), String.class);
+            if (StringUtils.isEmpty(keyValue)) {
+                continue;
+            }
+            //
             if (useCaseKeyMap.containsKey(keyType)) {
                 UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
                 entity.setValue(keyValue);
