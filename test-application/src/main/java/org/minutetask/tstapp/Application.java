@@ -60,6 +60,7 @@ public class Application {
             CreateEncounterCase createEncounter2 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             log.info("JK: " + createEncounter2.toString());
             createEncounter2.setId(null);
+            createEncounter2.setTcn("tcn-2.1");
             createEncounter2.setPersonId("personId-2.1");
             createEncounter2.setEncounterId("encounterId-2.1");
             UseCaseEntity useCaseEntity2 = useCaseManager.createUseCase(createEncounter2);
@@ -71,6 +72,7 @@ public class Application {
             //
             CreateEncounterCase createEncounter3 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter3.setId(null);
+            createEncounter3.setTcn("tcn-3.1");
             createEncounter3.setPersonId("personId-3.1");
             createEncounter3.setEncounterId("encounterId-3.1");
             UseCaseEntity useCaseEntity3 = useCaseManager.createUseCase(createEncounter3);
@@ -78,6 +80,7 @@ public class Application {
             //
             CreateEncounterCase createEncounter4 = useCaseManager.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter4.setId(null);
+            createEncounter4.setTcn("tcn-4.1");
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             UseCaseEntity useCaseEntity4 = useCaseManager.createUseCase(createEncounter4);

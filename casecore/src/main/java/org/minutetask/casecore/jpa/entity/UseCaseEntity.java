@@ -1,7 +1,5 @@
 package org.minutetask.casecore.jpa.entity;
 
-import java.time.LocalDateTime;
-
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -22,6 +20,8 @@ import java.time.LocalDateTime;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -88,7 +89,8 @@ public class UseCaseEntity {
     @Column(name = "finished_date", nullable = true)
     private LocalDateTime finishedDate = null;
 
-    @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY)
+    @Getter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<UseCaseKeyEntity> useCaseKeys = null;
 
     //
@@ -105,12 +107,15 @@ public class UseCaseEntity {
 
     //
 
+    @Getter(AccessLevel.NONE)
     @Transient
     private Map<String, Object> keys = new HashMap<String, Object>();
 
+    @Getter(AccessLevel.NONE)
     @Transient
     private Map<String, Object> parameters = new HashMap<String, Object>();
 
+    @Getter(AccessLevel.NONE)
     @Transient
     private Map<Class<?>, String> services = new HashMap<Class<?>, String>();
 
@@ -178,5 +183,35 @@ public class UseCaseEntity {
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
         }
+    }
+
+    //
+
+    public List<UseCaseKeyEntity> getUseCaseKeys() {
+        if (useCaseKeys == null) {
+            useCaseKeys = new ArrayList<UseCaseKeyEntity>();
+        }
+        return useCaseKeys;
+    }
+
+    public Map<String, Object> getKeys() {
+        if (keys == null) {
+            keys = new HashMap<String, Object>();
+        }
+        return keys;
+    }
+
+    public Map<String, Object> getParameters() {
+        if (parameters == null) {
+            parameters = new HashMap<String, Object>();
+        }
+        return parameters;
+    }
+
+    public Map<Class<?>, String> getServices() {
+        if (services == null) {
+            services = new HashMap<Class<?>, String>();
+        }
+        return services;
     }
 }

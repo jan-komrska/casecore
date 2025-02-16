@@ -22,12 +22,12 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.minutetask.casecore.annotation.IdRef;
@@ -110,6 +110,42 @@ public class UseCaseManagerImpl implements UseCaseManager {
         }
     }
 
+    // TOD handle null value
+    private UseCaseEntity updateUcKeys(UseCaseEntity useCase) {
+        List<UseCaseKeyEntity> useCaseKeyList = new ArrayList<UseCaseKeyEntity>();
+        Map<Long, UseCaseKeyEntity> useCaseKeyMap = new HashMap<Long, UseCaseKeyEntity>();
+        for (UseCaseKeyEntity useCaseKey : useCase.getUseCaseKeys()) {
+            useCaseKeyMap.put(useCaseKey.getType(), useCaseKey);
+        }
+        //
+        for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
+            Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
+            String keyValue = conversionService.convert(entry.getValue(), String.class);
+            if (useCaseKeyMap.containsKey(keyType)) {
+                UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
+                entity.setValue(keyValue);
+                //
+                useCaseKeyList.add(entity);
+            } else {
+                UseCaseKeyEntity entity = new UseCaseKeyEntity();
+                entity.setType(keyType);
+                entity.setValue(keyValue);
+                entity.setUseCase(useCase);
+                //
+                useCaseKeyList.add(entity);
+            }
+        }
+        //
+        useCase.setUseCaseKeys(useCaseKeyList);
+        for (Map.Entry<Long, UseCaseKeyEntity> entry : useCaseKeyMap.entrySet()) {
+            useCaseKeyRepository.delete(entry.getValue());
+        }
+        for (UseCaseKeyEntity useCaseKey : useCaseKeyList) {
+            useCaseKeyRepository.save(useCaseKey);
+        }
+        return useCaseRepository.save(useCase);
+    }
+
     private <Data> Data getUcData(UseCaseEntity useCase, Class<Data> dataClass) {
         Object data;
         try {
@@ -119,7 +155,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
         }
         //
         try {
-            Map<String, Object> parameters = MapUtils.emptyIfNull(useCase.getParameters());
+            Map<String, Object> parameters = useCase.getParameters();
             List<Field> parameterFields = FieldUtils.getAllFieldsList(dataClass);
             for (Field parameterField : parameterFields) {
                 String parameterName = parameterField.getName();
@@ -128,7 +164,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 FieldUtils.writeField(parameterField, data, parameterValue, true);
             }
             //
-            Map<Class<?>, String> services = MapUtils.emptyIfNull(useCase.getServices());
+            Map<Class<?>, String> services = useCase.getServices();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
@@ -136,7 +172,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
                 FieldUtils.writeField(serviceField, data, serviceName, true);
             }
             //
-            Map<String, Object> keys = MapUtils.emptyIfNull(useCase.getKeys());
+            Map<String, Object> keys = useCase.getKeys();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
                 String keyType = keyField.getAnnotation(KeyRef.class).value();
@@ -164,8 +200,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
         useCase.setActive(true);
         useCase.setCreatedDate(LocalDateTime.now());
         updateUcData(useCase, data);
+        useCase = useCaseRepository.save(useCase);
         //
-        return useCaseRepository.save(useCase);
+        return updateUcKeys(useCase);
     }
 
     @Override
@@ -188,8 +225,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
     public UseCaseEntity updateUseCase(UseCaseEntity useCase, Object data) {
         useCase.setUpdatedDate(LocalDateTime.now());
         updateUcData(useCase, data);
+        useCase = useCaseRepository.save(useCase);
         //
-        return useCaseRepository.save(useCase);
+        return updateUcKeys(useCase);
     }
 
     @Override
