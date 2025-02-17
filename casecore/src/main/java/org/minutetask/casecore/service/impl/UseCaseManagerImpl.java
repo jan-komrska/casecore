@@ -22,6 +22,7 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -107,5 +108,11 @@ public class UseCaseManagerImpl implements UseCaseManager {
     @Override
     public void deleteUseCase(Long id) {
         useCaseService.deleteUseCase(id);
+    }
+
+    public boolean checkUseCaseId(Long id, Object useCase) {
+        Long useCaseId = getUseCaseId(useCase);
+        return Objects.equals(id, useCaseId);
+
     }
 }

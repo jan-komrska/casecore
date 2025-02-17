@@ -26,4 +26,6 @@ public interface UseCaseManager {
     public void saveUseCase(Object useCase);
 
     public void deleteUseCase(Long id);
+
+    public boolean checkUseCaseId(Long id, Object useCase);
 }
