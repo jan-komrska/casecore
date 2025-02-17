@@ -1,4 +1,4 @@
-package org.minutetask.casecore;
+package org.minutetask.casecore.exception;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,8 +20,24 @@ package org.minutetask.casecore;
  * =========================LICENSE_END==================================
  */
 
-public interface UseCaseManager {
-    public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass);
+public class BadRequestException extends CaseCoreException {
+    private static final long serialVersionUID = 7983546677246051394L;
 
-    public void saveUseCase(Object useCase);
+    //
+
+    public BadRequestException() {
+        super();
+    }
+
+    public BadRequestException(String message) {
+        super(message);
+    }
+
+    public BadRequestException(Throwable cause) {
+        super(cause);
+    }
+
+    public BadRequestException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
