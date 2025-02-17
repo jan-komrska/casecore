@@ -113,6 +113,5 @@ public class UseCaseManagerImpl implements UseCaseManager {
     public boolean checkUseCaseId(Long id, Object useCase) {
         Long useCaseId = getUseCaseId(useCase);
         return Objects.equals(id, useCaseId);
-
     }
 }
