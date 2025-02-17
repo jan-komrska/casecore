@@ -97,7 +97,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
         Long useCaseId = getUseCaseId(useCase);
         if (useCaseId != null) {
             UseCaseEntity useCaseEntity = useCaseService.getUseCase(useCaseId);
-            useCaseService.updateUseCase(useCaseEntity, useCaseEntity);
+            useCaseService.updateUseCase(useCaseEntity, useCase);
         } else {
             UseCaseEntity useCaseEntity = useCaseService.createUseCase(useCase);
             setUseCaseId(useCase, useCaseEntity.getId());
