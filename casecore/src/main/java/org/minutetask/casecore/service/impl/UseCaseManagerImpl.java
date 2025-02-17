@@ -34,8 +34,15 @@ import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.service.api.UseCaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
+@Service
+@Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseManagerImpl implements UseCaseManager {
     @Autowired
     private UseCaseService useCaseService;
@@ -95,5 +102,10 @@ public class UseCaseManagerImpl implements UseCaseManager {
             UseCaseEntity useCaseEntity = useCaseService.createUseCase(useCase);
             setUseCaseId(useCase, useCaseEntity.getId());
         }
+    }
+
+    @Override
+    public void deleteUseCase(Long id) {
+        useCaseService.deleteUseCase(id);
     }
 }

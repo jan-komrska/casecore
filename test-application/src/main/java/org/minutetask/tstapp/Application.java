@@ -21,8 +21,7 @@ package org.minutetask.tstapp;
  */
 
 import org.minutetask.casecore.CoreCaseConfiguration;
-import org.minutetask.casecore.jpa.entity.UseCaseEntity;
-import org.minutetask.casecore.service.api.UseCaseService;
+import org.minutetask.casecore.UseCaseManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -43,7 +42,7 @@ public class Application {
     //
 
     @Autowired
-    private UseCaseService useCaseService = null;
+    private UseCaseManager useCaseManager = null;
 
     @Bean
     public CommandLineRunner commandLineRunner() {
@@ -55,37 +54,38 @@ public class Application {
             createEncounter1.setPersonId("personId-1");
             createEncounter1.setEncounterId("encounterId-1");
             createEncounter1.setAction("action-1");
-            UseCaseEntity useCaseEntity1 = useCaseService.createUseCase(createEncounter1);
+            useCaseManager.saveUseCase(createEncounter1);
+            log.info("request-1: " + createEncounter1.toString());
             //
-            CreateEncounterCase createEncounter2 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            CreateEncounterCase createEncounter2 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
             createEncounter2.setId(null);
             createEncounter2.setTcn("tcn-2.1");
             createEncounter2.setPersonId("personId-2.1");
             createEncounter2.setEncounterId("encounterId-2.1");
-            log.info("record: " + createEncounter2);
-            UseCaseEntity useCaseEntity2 = useCaseService.createUseCase(createEncounter2);
-            createEncounter2.setId(useCaseEntity2.getId());
+            useCaseManager.saveUseCase(createEncounter2);
             createEncounter2.setTcn("tcn-2.2");
             createEncounter2.setAction("action-2.2");
-            log.info("record: " + createEncounter2);
-            useCaseEntity2 = useCaseService.updateUseCase(useCaseEntity2, createEncounter2);
+            useCaseManager.saveUseCase(createEncounter2);
+            log.info("request-2: " + createEncounter2.toString());
             //
-            CreateEncounterCase createEncounter3 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            CreateEncounterCase createEncounter3 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
             createEncounter3.setId(null);
             createEncounter3.setClosed(true);
             createEncounter3.setTcn("tcn-3.1");
             createEncounter3.setPersonId("personId-3.1");
             createEncounter3.setEncounterId("encounterId-3.1");
-            UseCaseEntity useCaseEntity3 = useCaseService.createUseCase(createEncounter3);
+            useCaseManager.saveUseCase(createEncounter3);
+            log.info("request-3: " + createEncounter3.toString());
             //
-            CreateEncounterCase createEncounter4 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
+            CreateEncounterCase createEncounter4 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
             createEncounter4.setId(null);
             createEncounter4.setTcn(null);
             createEncounter4.setClosed(true);
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
-            UseCaseEntity useCaseEntity4 = useCaseService.createUseCase(createEncounter4);
-            useCaseService.deleteUseCase(useCaseEntity4.getId());
+            useCaseManager.saveUseCase(createEncounter4);
+            useCaseManager.deleteUseCase(createEncounter4.getId());
+            log.info("request-4: " + createEncounter4.toString());
             //
             System.out.println("OK");
         };

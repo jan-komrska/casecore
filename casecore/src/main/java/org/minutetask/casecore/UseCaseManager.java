@@ -24,4 +24,6 @@ public interface UseCaseManager {
     public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass);
 
     public void saveUseCase(Object useCase);
+
+    public void deleteUseCase(Long id);
 }
