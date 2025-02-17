@@ -20,8 +20,8 @@ package org.minutetask.casecore;
  * =========================LICENSE_END==================================
  */
 
-public interface ActionContext {
-    public <UseCase> UseCase getUseCase(Class<UseCase> useCaseClass);
+public interface UseCaseManager {
+    public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass);
 
-    public void saveUseCase(Object useCase);
+    public Long saveUseCase(Object useCase);
 }

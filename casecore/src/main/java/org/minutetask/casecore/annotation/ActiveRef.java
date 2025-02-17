@@ -1,4 +1,4 @@
-package org.minutetask.casecore;
+package org.minutetask.casecore.annotation;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,8 +20,12 @@ package org.minutetask.casecore;
  * =========================LICENSE_END==================================
  */
 
-public interface ActionContext {
-    public <UseCase> UseCase getUseCase(Class<UseCase> useCaseClass);
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public void saveUseCase(Object useCase);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface ActiveRef {
 }
