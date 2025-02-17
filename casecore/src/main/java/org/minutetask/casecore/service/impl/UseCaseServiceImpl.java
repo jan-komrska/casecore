@@ -31,6 +31,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.minutetask.casecore.annotation.ActiveRef;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.annotation.ServiceRef;
@@ -78,6 +79,13 @@ public class UseCaseServiceImpl implements UseCaseService {
                 }
             }
             //
+            List<Field> activeFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ActiveRef.class);
+            for (Field activeField : activeFields) {
+                Object activeValue = FieldUtils.readField(activeField, data, true);
+                activeValue = conversionService.convert(activeValue, Boolean.class);
+                useCase.setActive(Boolean.TRUE.equals(activeValue));
+            }
+            //
             Map<String, Object> keys = new HashMap<String, Object>();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
@@ -111,7 +119,6 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
     }
 
-    // TOD handle null value
     private UseCaseEntity updateUcKeys(UseCaseEntity useCase) {
         List<UseCaseKeyEntity> useCaseKeyList = new ArrayList<UseCaseKeyEntity>();
         Map<Long, UseCaseKeyEntity> useCaseKeyMap = new HashMap<Long, UseCaseKeyEntity>();
@@ -186,6 +193,12 @@ public class UseCaseServiceImpl implements UseCaseService {
                 FieldUtils.writeField(keyField, data, keyValue, true);
             }
             //
+            List<Field> activeFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ActiveRef.class);
+            for (Field activeField : activeFields) {
+                Object activeValue = conversionService.convert(useCase.isActive(), activeField.getType());
+                FieldUtils.writeField(activeField, data, activeValue, true);
+            }
+            //
             List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
             for (Field idField : idFields) {
                 Object idValue = conversionService.convert(useCase.getId(), idField.getType());
@@ -238,13 +251,6 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Override
     public <Data> Data getUseCaseData(UseCaseEntity useCase, Class<Data> dataClass) {
         return getUcData(useCase, dataClass);
-    }
-
-    @Override
-    public UseCaseEntity finishUseCase(UseCaseEntity useCase) {
-        useCase.setActive(false);
-        useCase.setFinishedDate(LocalDateTime.now());
-        return useCaseRepository.save(useCase);
     }
 
     @Override

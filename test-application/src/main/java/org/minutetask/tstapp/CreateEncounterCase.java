@@ -1,5 +1,6 @@
 package org.minutetask.tstapp;
 
+import org.minutetask.casecore.annotation.ActiveRef;
 import org.minutetask.casecore.annotation.IdRef;
 
 /*-
@@ -35,6 +36,9 @@ import lombok.ToString;
 public class CreateEncounterCase {
     @IdRef
     private Long id;
+
+    @ActiveRef
+    private boolean active;
 
     private String personId;
 

@@ -64,6 +64,7 @@ public class Application {
             log.info("record: " + createEncounter2);
             UseCaseEntity useCaseEntity2 = useCaseService.createUseCase(createEncounter2);
             createEncounter2.setId(useCaseEntity2.getId());
+            createEncounter2.setActive(true);
             createEncounter2.setTcn("tcn-2.2");
             createEncounter2.setAction("action-2.2");
             log.info("record: " + createEncounter2);
@@ -71,18 +72,17 @@ public class Application {
             //
             CreateEncounterCase createEncounter3 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter3.setId(null);
+            createEncounter3.setActive(true);
             createEncounter3.setTcn("tcn-3.1");
             createEncounter3.setPersonId("personId-3.1");
             createEncounter3.setEncounterId("encounterId-3.1");
             UseCaseEntity useCaseEntity3 = useCaseService.createUseCase(createEncounter3);
-            useCaseService.finishUseCase(useCaseEntity3);
             //
             CreateEncounterCase createEncounter4 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter4.setId(null);
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             UseCaseEntity useCaseEntity4 = useCaseService.createUseCase(createEncounter4);
-            useCaseService.finishUseCase(useCaseEntity4);
             useCaseService.deleteUseCase(useCaseEntity4.getId());
             //
             System.out.println("OK");

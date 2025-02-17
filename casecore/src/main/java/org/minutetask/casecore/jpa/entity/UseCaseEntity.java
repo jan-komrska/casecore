@@ -86,9 +86,6 @@ public class UseCaseEntity {
     @Column(name = "updated_date", nullable = true)
     private LocalDateTime updatedDate = null;
 
-    @Column(name = "finished_date", nullable = true)
-    private LocalDateTime finishedDate = null;
-
     @Getter(AccessLevel.NONE)
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<UseCaseKeyEntity> useCaseKeys = null;
