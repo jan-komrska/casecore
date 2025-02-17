@@ -51,6 +51,7 @@ public class Application {
             System.out.println("Let's start flow:");
             //
             CreateEncounterCase createEncounter1 = new CreateEncounterCase();
+            createEncounter1.setTcn("tcn-1.1");
             createEncounter1.setPersonId("personId-1");
             createEncounter1.setEncounterId("encounterId-1");
             createEncounter1.setAction("action-1");
@@ -64,7 +65,6 @@ public class Application {
             log.info("record: " + createEncounter2);
             UseCaseEntity useCaseEntity2 = useCaseService.createUseCase(createEncounter2);
             createEncounter2.setId(useCaseEntity2.getId());
-            createEncounter2.setActive(true);
             createEncounter2.setTcn("tcn-2.2");
             createEncounter2.setAction("action-2.2");
             log.info("record: " + createEncounter2);
@@ -72,7 +72,7 @@ public class Application {
             //
             CreateEncounterCase createEncounter3 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter3.setId(null);
-            createEncounter3.setActive(true);
+            createEncounter3.setClosed(true);
             createEncounter3.setTcn("tcn-3.1");
             createEncounter3.setPersonId("personId-3.1");
             createEncounter3.setEncounterId("encounterId-3.1");
@@ -80,6 +80,8 @@ public class Application {
             //
             CreateEncounterCase createEncounter4 = useCaseService.getUseCaseData(useCaseEntity1, CreateEncounterCase.class);
             createEncounter4.setId(null);
+            createEncounter4.setTcn(null);
+            createEncounter4.setClosed(true);
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             UseCaseEntity useCaseEntity4 = useCaseService.createUseCase(createEncounter4);

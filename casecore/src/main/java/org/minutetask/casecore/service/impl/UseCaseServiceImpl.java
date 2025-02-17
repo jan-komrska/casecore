@@ -31,7 +31,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.minutetask.casecore.annotation.ActiveRef;
+import org.minutetask.casecore.annotation.ClosedRef;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.annotation.ServiceRef;
@@ -79,11 +79,11 @@ public class UseCaseServiceImpl implements UseCaseService {
                 }
             }
             //
-            List<Field> activeFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ActiveRef.class);
-            for (Field activeField : activeFields) {
-                Object activeValue = FieldUtils.readField(activeField, data, true);
-                activeValue = conversionService.convert(activeValue, Boolean.class);
-                useCase.setActive(Boolean.TRUE.equals(activeValue));
+            List<Field> closedFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ClosedRef.class);
+            for (Field closedField : closedFields) {
+                Object closedValue = FieldUtils.readField(closedField, data, true);
+                closedValue = conversionService.convert(closedValue, Boolean.class);
+                useCase.setClosed(Boolean.TRUE.equals(closedValue));
             }
             //
             Map<String, Object> keys = new HashMap<String, Object>();
@@ -126,25 +126,27 @@ public class UseCaseServiceImpl implements UseCaseService {
             useCaseKeyMap.put(useCaseKey.getType(), useCaseKey);
         }
         //
-        for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
-            Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
-            String keyValue = conversionService.convert(entry.getValue(), String.class);
-            if (StringUtils.isEmpty(keyValue)) {
-                continue;
-            }
-            //
-            if (useCaseKeyMap.containsKey(keyType)) {
-                UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
-                entity.setValue(keyValue);
+        if (!useCase.isClosed()) {
+            for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
+                Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
+                String keyValue = conversionService.convert(entry.getValue(), String.class);
+                if (StringUtils.isEmpty(keyValue)) {
+                    continue;
+                }
                 //
-                useCaseKeyList.add(entity);
-            } else {
-                UseCaseKeyEntity entity = new UseCaseKeyEntity();
-                entity.setType(keyType);
-                entity.setValue(keyValue);
-                entity.setUseCase(useCase);
-                //
-                useCaseKeyList.add(entity);
+                if (useCaseKeyMap.containsKey(keyType)) {
+                    UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
+                    entity.setValue(keyValue);
+                    //
+                    useCaseKeyList.add(entity);
+                } else {
+                    UseCaseKeyEntity entity = new UseCaseKeyEntity();
+                    entity.setType(keyType);
+                    entity.setValue(keyValue);
+                    entity.setUseCase(useCase);
+                    //
+                    useCaseKeyList.add(entity);
+                }
             }
         }
         //
@@ -193,10 +195,10 @@ public class UseCaseServiceImpl implements UseCaseService {
                 FieldUtils.writeField(keyField, data, keyValue, true);
             }
             //
-            List<Field> activeFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ActiveRef.class);
-            for (Field activeField : activeFields) {
-                Object activeValue = conversionService.convert(useCase.isActive(), activeField.getType());
-                FieldUtils.writeField(activeField, data, activeValue, true);
+            List<Field> closedFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ClosedRef.class);
+            for (Field closedField : closedFields) {
+                Object closedValue = conversionService.convert(useCase.isClosed(), closedField.getType());
+                FieldUtils.writeField(closedField, data, closedValue, true);
             }
             //
             List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
@@ -215,7 +217,7 @@ public class UseCaseServiceImpl implements UseCaseService {
     public UseCaseEntity createUseCase(Object data) {
         UseCaseEntity useCase = new UseCaseEntity();
         //
-        useCase.setActive(true);
+        useCase.setClosed(false);
         useCase.setCreatedDate(LocalDateTime.now());
         updateUcData(useCase, data);
         useCase = useCaseRepository.save(useCase);

@@ -1,6 +1,6 @@
 package org.minutetask.tstapp;
 
-import org.minutetask.casecore.annotation.ActiveRef;
+import org.minutetask.casecore.annotation.ClosedRef;
 import org.minutetask.casecore.annotation.IdRef;
 
 /*-
@@ -37,8 +37,8 @@ public class CreateEncounterCase {
     @IdRef
     private Long id;
 
-    @ActiveRef
-    private boolean active;
+    @ClosedRef
+    private boolean closed;
 
     private String personId;
 

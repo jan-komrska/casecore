@@ -77,8 +77,8 @@ public class UseCaseEntity {
     @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
 
-    @Column(name = "active", nullable = false)
-    private boolean active = false;
+    @Column(name = "closed", nullable = false)
+    private boolean closed = false;
 
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate = null;
