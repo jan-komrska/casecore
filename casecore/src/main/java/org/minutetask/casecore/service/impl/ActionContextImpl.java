@@ -1,4 +1,4 @@
-package org.minutetask.casecore.annotation;
+package org.minutetask.casecore.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,17 @@ package org.minutetask.casecore.annotation;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.minutetask.casecore.ActionContext;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
-public @interface IdRef {
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public class ActionContextImpl implements ActionContext {
+    private Long useCaseId;
 }
