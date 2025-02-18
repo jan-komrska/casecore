@@ -23,9 +23,9 @@ package org.minutetask.casecore;
 public interface UseCaseManager {
     public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass);
 
+    public <UseCase> UseCase getUseCase(ActionContext actionContext, Class<UseCase> useCaseClass);
+
     public void saveUseCase(Object useCase);
 
     public void deleteUseCase(Long id);
-
-    public boolean checkUseCaseId(Long id, Object useCase);
 }
