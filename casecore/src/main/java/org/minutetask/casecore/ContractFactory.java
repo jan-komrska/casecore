@@ -1,4 +1,4 @@
-package org.minutetask.casecore.service.impl;
+package org.minutetask.casecore;
 
 /*-
  * ========================LICENSE_START=================================
@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.minutetask.casecore.annotation.InternalRef;
+import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
@@ -59,8 +60,9 @@ public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
                         if (method.isDefault() && method.isAnnotationPresent(InternalRef.class)) {
                             return InvocationHandler.invokeDefault(proxy, method, args);
                         }
-                        // TODO
-                        return null;
+                        //
+                        UseCaseDispatcher useCaseDispatcher = getBeanFactory().getBean(UseCaseDispatcher.class);
+                        return useCaseDispatcher.invoke(method, args);
                     }
                 }));
     }
