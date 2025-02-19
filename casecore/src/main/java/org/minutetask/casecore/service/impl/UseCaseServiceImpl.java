@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -121,6 +123,7 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     private UseCaseEntity updateUcKeys(UseCaseEntity useCase) {
         List<UseCaseKeyEntity> useCaseKeyList = new ArrayList<UseCaseKeyEntity>();
+        List<UseCaseKeyEntity> useCaseKeyDiff = new ArrayList<UseCaseKeyEntity>();
         Map<Long, UseCaseKeyEntity> useCaseKeyMap = new HashMap<Long, UseCaseKeyEntity>();
         for (UseCaseKeyEntity useCaseKey : useCase.getUseCaseKeys()) {
             useCaseKeyMap.put(useCaseKey.getType(), useCaseKey);
@@ -130,15 +133,19 @@ public class UseCaseServiceImpl implements UseCaseService {
             for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
                 Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
                 String keyValue = conversionService.convert(entry.getValue(), String.class);
-                if (StringUtils.isEmpty(keyValue)) {
-                    continue;
-                }
                 //
-                if (useCaseKeyMap.containsKey(keyType)) {
+                if (StringUtils.isEmpty(keyValue)) {
+                    // DO NOTHING
+                } else if (useCaseKeyMap.containsKey(keyType)) {
                     UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
-                    entity.setValue(keyValue);
-                    //
-                    useCaseKeyList.add(entity);
+                    if (!Objects.equals(keyValue, entity.getValue())) {
+                        entity.setValue(keyValue);
+                        //
+                        useCaseKeyList.add(entity);
+                        useCaseKeyDiff.add(entity);
+                    } else {
+                        useCaseKeyList.add(entity);
+                    }
                 } else {
                     UseCaseKeyEntity entity = new UseCaseKeyEntity();
                     entity.setType(keyType);
@@ -146,18 +153,24 @@ public class UseCaseServiceImpl implements UseCaseService {
                     entity.setUseCase(useCase);
                     //
                     useCaseKeyList.add(entity);
+                    useCaseKeyDiff.add(entity);
                 }
             }
         }
         //
-        useCase.setUseCaseKeys(useCaseKeyList);
-        for (Map.Entry<Long, UseCaseKeyEntity> entry : useCaseKeyMap.entrySet()) {
-            useCaseKeyRepository.delete(entry.getValue());
+        if (CollectionUtils.isNotEmpty(useCaseKeyDiff) || MapUtils.isNotEmpty(useCaseKeyMap)) {
+            useCase.setUseCaseKeys(useCaseKeyList);
+            for (Map.Entry<Long, UseCaseKeyEntity> entry : useCaseKeyMap.entrySet()) {
+                useCaseKeyRepository.delete(entry.getValue());
+            }
+            for (UseCaseKeyEntity useCaseKey : useCaseKeyDiff) {
+                useCaseKeyRepository.save(useCaseKey);
+            }
+            return useCaseRepository.save(useCase);
+        } else {
+            return useCase;
         }
-        for (UseCaseKeyEntity useCaseKey : useCaseKeyList) {
-            useCaseKeyRepository.save(useCaseKey);
-        }
-        return useCaseRepository.save(useCase);
+
     }
 
     private <Data> Data getUcData(UseCaseEntity useCase, Class<Data> dataClass) {
