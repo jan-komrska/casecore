@@ -51,9 +51,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+@Transactional(readOnly = true)
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseServiceImpl implements UseCaseService {
@@ -69,6 +70,8 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::conversionServiceBean")
     @Autowired
     private ConversionService conversionService;
+
+    //
 
     private void updateUcData(UseCaseEntity useCase, Object data) {
         try {
@@ -121,6 +124,13 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
     }
 
+    private void resetUcData(UseCaseEntity useCase) {
+        useCase.setKeys(new HashMap<String, Object>());
+        useCase.setParameters(new HashMap<String, Object>());
+        useCase.setServices(new HashMap<Class<?>, String>());
+        useCase.applyChanges();
+    }
+
     private UseCaseEntity updateUcKeys(UseCaseEntity useCase) {
         List<UseCaseKeyEntity> useCaseKeyList = new ArrayList<UseCaseKeyEntity>();
         List<UseCaseKeyEntity> useCaseKeyDiff = new ArrayList<UseCaseKeyEntity>();
@@ -170,7 +180,6 @@ public class UseCaseServiceImpl implements UseCaseService {
         } else {
             return useCase;
         }
-
     }
 
     private <Data> Data getUcData(UseCaseEntity useCase, Class<Data> dataClass) {
@@ -226,16 +235,16 @@ public class UseCaseServiceImpl implements UseCaseService {
         return dataClass.cast(data);
     }
 
+    //
+
     @Override
-    public UseCaseEntity createUseCase(Object data) {
+    @Transactional
+    public UseCaseEntity createUseCase() {
         UseCaseEntity useCase = new UseCaseEntity();
         //
         useCase.setClosed(false);
         useCase.setCreatedDate(LocalDateTime.now());
-        updateUcData(useCase, data);
-        useCase = useCaseRepository.save(useCase);
-        //
-        return updateUcKeys(useCase);
+        return useCaseRepository.save(useCase);
     }
 
     @Override
@@ -255,21 +264,49 @@ public class UseCaseServiceImpl implements UseCaseService {
     }
 
     @Override
-    public UseCaseEntity updateUseCase(UseCaseEntity useCase, Object data) {
+    @Transactional
+    public UseCaseEntity updateUseCase(UseCaseEntity useCase) {
         useCase.setUpdatedDate(LocalDateTime.now());
-        updateUcData(useCase, data);
-        useCase = useCaseRepository.save(useCase);
         //
+        useCase = useCaseRepository.save(useCase);
         return updateUcKeys(useCase);
     }
 
     @Override
+    @Transactional
+    public void deleteUseCase(Long id) {
+        useCaseRepository.deleteById(id);
+    }
+
+    //
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public <Data> Data getUseCaseData(UseCaseEntity useCase, Class<Data> dataClass) {
-        return getUcData(useCase, dataClass);
+        if (useCase.getSource() != null) {
+            if (dataClass.isInstance(useCase.getSource())) {
+                return dataClass.cast(useCase.getSource());
+            } else {
+                throw new ConflictException();
+            }
+        } else {
+            Object source = getUcData(useCase, dataClass);
+            useCase.setSource(source);
+            return dataClass.cast(source);
+        }
     }
 
     @Override
-    public void deleteUseCase(Long id) {
-        useCaseRepository.deleteById(id);
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public void updateUseCaseData(UseCaseEntity useCase, Object data) {
+        if (data != null) {
+            useCase.setUpdatedDate(LocalDateTime.now());
+            useCase.setSource(data);
+            updateUcData(useCase, data);
+        } else {
+            useCase.setUpdatedDate(LocalDateTime.now());
+            useCase.setSource(null);
+            resetUcData(useCase);
+        }
     }
 }

@@ -116,6 +116,9 @@ public class UseCaseEntity {
     @Transient
     private Map<Class<?>, String> services = new HashMap<Class<?>, String>();
 
+    @Transient
+    private Object source = null;
+
     @PostLoad
     public void postLoad() {
         try {

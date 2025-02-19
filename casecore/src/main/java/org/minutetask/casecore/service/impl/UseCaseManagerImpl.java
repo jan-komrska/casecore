@@ -41,7 +41,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+@Transactional(readOnly = true)
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseManagerImpl implements UseCaseManager {
@@ -83,6 +83,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
         }
     }
 
+    //
+
     @Override
     public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass) {
         UseCaseEntity useCaseEntity = useCaseService.getUseCase(id);
@@ -99,18 +101,33 @@ public class UseCaseManagerImpl implements UseCaseManager {
     }
 
     @Override
-    public void saveUseCase(Object useCase) {
-        Long useCaseId = getUseCaseId(useCase);
-        if (useCaseId != null) {
-            UseCaseEntity useCaseEntity = useCaseService.getUseCase(useCaseId);
-            useCaseService.updateUseCase(useCaseEntity, useCase);
+    public <UseCase> UseCase getUseCase(String keyType, String keyValue, Class<UseCase> useCaseClass) {
+        UseCaseEntity useCaseEntity = useCaseService.getUseCase(keyType, keyValue);
+        if (useCaseEntity != null) {
+            return useCaseService.getUseCaseData(useCaseEntity, useCaseClass);
         } else {
-            UseCaseEntity useCaseEntity = useCaseService.createUseCase(useCase);
-            setUseCaseId(useCase, useCaseEntity.getId());
+            throw new NotFoundException();
         }
     }
 
     @Override
+    @Transactional
+    public void saveUseCase(Object useCase) {
+        Long useCaseId = getUseCaseId(useCase);
+        if (useCaseId != null) {
+            UseCaseEntity useCaseEntity = useCaseService.getUseCase(useCaseId);
+            useCaseService.updateUseCaseData(useCaseEntity, useCase);
+            useCaseService.updateUseCase(useCaseEntity);
+        } else {
+            UseCaseEntity useCaseEntity = useCaseService.createUseCase();
+            setUseCaseId(useCase, useCaseEntity.getId());
+            useCaseService.updateUseCaseData(useCaseEntity, useCase);
+            useCaseService.updateUseCase(useCaseEntity);
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteUseCase(Long id) {
         useCaseService.deleteUseCase(id);
     }
