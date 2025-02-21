@@ -1,4 +1,4 @@
-package org.minutetask.casecore;
+package org.minutetask.casecore.factory;
 
 /*-
  * ========================LICENSE_START=================================
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
     private Class<Contract> contractClass = null;
+    private UseCaseDispatcher useCaseDispatcher = null;
 
     //
 
@@ -61,9 +62,18 @@ public class ContractFactory<Contract> extends AbstractFactoryBean<Contract> {
                             return InvocationHandler.invokeDefault(proxy, method, args);
                         }
                         //
-                        UseCaseDispatcher useCaseDispatcher = getBeanFactory().getBean(UseCaseDispatcher.class);
                         return useCaseDispatcher.invoke(method, args);
                     }
                 }));
+    }
+
+    //
+
+    public UseCaseDispatcher getUseCaseDispatcher() {
+        return useCaseDispatcher;
+    }
+
+    public void setUseCaseDispatcher(UseCaseDispatcher useCaseDispatcher) {
+        this.useCaseDispatcher = useCaseDispatcher;
     }
 }

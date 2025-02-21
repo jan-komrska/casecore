@@ -1,5 +1,8 @@
 package org.minutetask.casecore;
 
+import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import org.springframework.beans.factory.config.BeanDefinition;
+
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -25,16 +28,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
-import org.springframework.context.support.ConversionServiceFactoryBean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 @EntityScan
 @EnableJpaRepositories
 @ComponentScan(basePackages = "org.minutetask.casecore", nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 public class CoreCaseConfiguration {
-    @Bean("org.minutetask.casecore.CoreCaseConfiguration::conversionServiceBean")
-    public ConversionServiceFactoryBean conversionServiceBean() {
-        return new ConversionServiceFactoryBean();
+    @Bean("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")
+    @Scope(value = BeanDefinition.SCOPE_SINGLETON)
+    public ObjectMapper createObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        //
+        UseCaseEntity.setObjectMapper(objectMapper);
+        return objectMapper;
     }
 }

@@ -30,12 +30,13 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.minutetask.casecore.CaseCoreScan;
-import org.minutetask.casecore.ContractFactory;
 import org.minutetask.casecore.annotation.ContractRef;
+import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -70,7 +71,9 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
             Class<?> beanClass = Class.forName(beanClassName, true, Thread.currentThread().getContextClassLoader());
             CaseCoreScan contractScan = beanClass.getAnnotation(CaseCoreScan.class);
             //
-            if ((contractScan != null) && ArrayUtils.isNotEmpty(contractScan.value())) {
+            if (contractScan == null) {
+                return Collections.emptyList();
+            } else if (ArrayUtils.isNotEmpty(contractScan.value())) {
                 return Arrays.asList(contractScan.value());
             } else {
                 return Collections.singletonList(beanClass.getPackageName());
@@ -95,11 +98,11 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
         beanDefinitionBuilder.setPrimary(true);
         beanDefinitionBuilder.setLazyInit(false);
         beanDefinitionBuilder.addConstructorArgValue(contractClass);
-        // beanDefinitionBuilder.addPropertyValue("dispatcher", new RuntimeBeanReference(Dispatcher.class));
+        beanDefinitionBuilder.addPropertyValue("useCaseDispatcher", new RuntimeBeanReference(UseCaseDispatcher.class));
         //
         registry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
         //
-        log.debug("Registered contract factory [" + beanName + "]");
+        log.info("Registered contract factory [" + beanName + "]");
     }
 
     //

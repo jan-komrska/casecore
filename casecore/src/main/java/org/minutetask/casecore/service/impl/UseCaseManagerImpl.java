@@ -37,9 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
 @Service
@@ -48,9 +49,9 @@ public class UseCaseManagerImpl implements UseCaseManager {
     @Autowired
     private UseCaseService useCaseService;
 
-    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::conversionServiceBean")
+    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")
     @Autowired
-    private ConversionService conversionService;
+    private ObjectMapper objectMapper;
 
     //
 
@@ -62,7 +63,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
         //
         try {
             Object idValue = FieldUtils.readField(idFields.get(0), useCase, true);
-            return conversionService.convert(idValue, Long.class);
+            return objectMapper.convertValue(idValue, Long.class);
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
         }
@@ -76,7 +77,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
         //
         try {
             for (Field idField : idFields) {
-                FieldUtils.writeField(idField, useCase, idValue, true);
+                Object tmpValue = objectMapper.convertValue(idValue, idField.getType());
+                FieldUtils.writeField(idField, useCase, tmpValue, true);
             }
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);

@@ -92,7 +92,15 @@ public class UseCaseEntity {
 
     //
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Setter
+    private static ObjectMapper objectMapper = null;
+
+    public static ObjectMapper getObjectMapper() {
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper();
+        }
+        return objectMapper;
+    }
 
     private static final TypeReference<Map<String, Object>> DATA_REFERENCE = //
             new TypeReference<Map<String, Object>>() {
@@ -127,7 +135,7 @@ public class UseCaseEntity {
             services = new HashMap<Class<?>, String>();
             //
             if (StringUtils.isNotEmpty(dataAsJson)) {
-                Map<String, Object> dataAsMap = objectMapper.readValue(dataAsJson, DATA_REFERENCE);
+                Map<String, Object> dataAsMap = getObjectMapper().readValue(dataAsJson, DATA_REFERENCE);
                 //
                 @SuppressWarnings("unchecked")
                 Map<String, Object> tmpKeys = (Map<String, Object>) dataAsMap.get(KEYS_ATTRIBUTE);
@@ -176,7 +184,7 @@ public class UseCaseEntity {
             }
             //
             if (MapUtils.isNotEmpty(dataAsMap)) {
-                dataAsJson = objectMapper.writeValueAsString(dataAsMap);
+                dataAsJson = getObjectMapper().writeValueAsString(dataAsMap);
             } else {
                 dataAsJson = null;
             }

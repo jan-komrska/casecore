@@ -49,10 +49,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
 @Service
@@ -67,18 +68,23 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Autowired
     private UseCaseKeyRepository useCaseKeyRepository;
 
-    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::conversionServiceBean")
+    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")
     @Autowired
-    private ConversionService conversionService;
+    private ObjectMapper objectMapper;
 
     //
 
     private void updateUcData(UseCaseEntity useCase, Object data) {
+        if (data == null) {
+            useCase.applyChanges();
+            return;
+        }
+        //
         try {
             List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
             for (Field idField : idFields) {
                 Object idValue = FieldUtils.readField(idField, data, true);
-                idValue = conversionService.convert(idValue, Long.class);
+                idValue = objectMapper.convertValue(idValue, Long.class);
                 if (!Objects.equals(useCase.getId(), idValue)) {
                     throw new ConflictException();
                 }
@@ -87,7 +93,7 @@ public class UseCaseServiceImpl implements UseCaseService {
             List<Field> closedFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ClosedRef.class);
             for (Field closedField : closedFields) {
                 Object closedValue = FieldUtils.readField(closedField, data, true);
-                closedValue = conversionService.convert(closedValue, Boolean.class);
+                closedValue = objectMapper.convertValue(closedValue, Boolean.class);
                 useCase.setClosed(Boolean.TRUE.equals(closedValue));
             }
             //
@@ -124,13 +130,6 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
     }
 
-    private void resetUcData(UseCaseEntity useCase) {
-        useCase.setKeys(new HashMap<String, Object>());
-        useCase.setParameters(new HashMap<String, Object>());
-        useCase.setServices(new HashMap<Class<?>, String>());
-        useCase.applyChanges();
-    }
-
     private UseCaseEntity updateUcKeys(UseCaseEntity useCase) {
         List<UseCaseKeyEntity> useCaseKeyList = new ArrayList<UseCaseKeyEntity>();
         List<UseCaseKeyEntity> useCaseKeyDiff = new ArrayList<UseCaseKeyEntity>();
@@ -142,7 +141,7 @@ public class UseCaseServiceImpl implements UseCaseService {
         if (!useCase.isClosed()) {
             for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
                 Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
-                String keyValue = conversionService.convert(entry.getValue(), String.class);
+                String keyValue = objectMapper.convertValue(entry.getValue(), String.class);
                 //
                 if (StringUtils.isEmpty(keyValue)) {
                     // DO NOTHING
@@ -196,7 +195,7 @@ public class UseCaseServiceImpl implements UseCaseService {
             for (Field parameterField : parameterFields) {
                 String parameterName = parameterField.getName();
                 Object parameterValue = parameters.get(parameterName);
-                parameterValue = conversionService.convert(parameterValue, parameterField.getType());
+                parameterValue = objectMapper.convertValue(parameterValue, parameterField.getType());
                 FieldUtils.writeField(parameterField, data, parameterValue, true);
             }
             //
@@ -213,19 +212,19 @@ public class UseCaseServiceImpl implements UseCaseService {
             for (Field keyField : keyFields) {
                 String keyType = keyField.getAnnotation(KeyRef.class).value();
                 Object keyValue = keys.get(keyType);
-                keyValue = conversionService.convert(keyValue, keyField.getType());
+                keyValue = objectMapper.convertValue(keyValue, keyField.getType());
                 FieldUtils.writeField(keyField, data, keyValue, true);
             }
             //
             List<Field> closedFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ClosedRef.class);
             for (Field closedField : closedFields) {
-                Object closedValue = conversionService.convert(useCase.isClosed(), closedField.getType());
+                Object closedValue = objectMapper.convertValue(useCase.isClosed(), closedField.getType());
                 FieldUtils.writeField(closedField, data, closedValue, true);
             }
             //
             List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
             for (Field idField : idFields) {
-                Object idValue = conversionService.convert(useCase.getId(), idField.getType());
+                Object idValue = objectMapper.convertValue(useCase.getId(), idField.getType());
                 FieldUtils.writeField(idField, data, idValue, true);
             }
         } catch (IllegalAccessException ex) {
@@ -299,14 +298,7 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void updateUseCaseData(UseCaseEntity useCase, Object data) {
-        if (data != null) {
-            useCase.setUpdatedDate(LocalDateTime.now());
-            useCase.setSource(data);
-            updateUcData(useCase, data);
-        } else {
-            useCase.setUpdatedDate(LocalDateTime.now());
-            useCase.setSource(null);
-            resetUcData(useCase);
-        }
+        useCase.setSource(data);
+        updateUcData(useCase, data);
     }
 }

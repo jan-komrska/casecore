@@ -1,5 +1,7 @@
 package org.minutetask.tstapp;
 
+import org.minutetask.casecore.CaseCoreScan;
+
 /*-
  * ========================LICENSE_START=================================
  * casecore-test-application
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Import(CoreCaseConfiguration.class)
+@CaseCoreScan("org.minutetask.tstapp")
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
