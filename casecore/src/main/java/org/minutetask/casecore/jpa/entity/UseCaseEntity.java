@@ -90,6 +90,10 @@ public class UseCaseEntity {
     @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<UseCaseKeyEntity> useCaseKeys = null;
 
+    @Getter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "useCase", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<UseCaseActionEntity> useCaseActions = null;
+
     //
 
     @Setter
