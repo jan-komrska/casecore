@@ -22,9 +22,17 @@ package org.minutetask.casecore.jpa.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.minutetask.casecore.exception.ConflictException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,6 +45,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 import jakarta.persistence.Transient;
@@ -79,10 +88,13 @@ public class UseCaseActionEntity {
     @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
 
+    @Column(name = "closed", nullable = false)
+    private boolean closed = false;
+
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate = null;
 
-    @Column(name = "scheduled_date", nullable = false)
+    @Column(name = "scheduled_date", nullable = true)
     private LocalDateTime scheduledDate = null;
 
     //
@@ -109,6 +121,43 @@ public class UseCaseActionEntity {
     @Transient
     private List<Object> parameters = new ArrayList<Object>();
 
+    @PostLoad
+    public void postLoad() {
+        try {
+            parameters = new ArrayList<Object>();
+            //
+            if (StringUtils.isNotEmpty(dataAsJson)) {
+                Map<String, Object> dataAsMap = getObjectMapper().readValue(dataAsJson, DATA_REFERENCE);
+                //
+                @SuppressWarnings("unchecked")
+                List<Object> tmpParameters = (List<Object>) dataAsMap.get(PARAMETERS_ATTRIBUTE);
+                if (CollectionUtils.isNotEmpty(tmpParameters)) {
+                    parameters.addAll(tmpParameters);
+                }
+            }
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    public void applyChanges() {
+        try {
+            Map<String, Object> dataAsMap = new HashMap<String, Object>();
+            //
+            if (CollectionUtils.isNotEmpty(parameters)) {
+                dataAsMap.put(PARAMETERS_ATTRIBUTE, new ArrayList<Object>(parameters));
+            }
+            //
+            if (MapUtils.isNotEmpty(dataAsMap)) {
+                dataAsJson = getObjectMapper().writeValueAsString(dataAsMap);
+            } else {
+                dataAsJson = null;
+            }
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
     //
 
     public List<Object> getParameters() {
@@ -116,5 +165,23 @@ public class UseCaseActionEntity {
             parameters = new ArrayList<Object>();
         }
         return parameters;
+    }
+
+    public List<Object> getParameters(List<Class<?>> tmpClasses) {
+        List<Object> tmpParameters = ListUtils.emptyIfNull(parameters);
+        tmpClasses = ListUtils.emptyIfNull(tmpClasses);
+        //
+        if (parameters.size() == tmpClasses.size()) {
+            List<Object> resParameters = new ArrayList<Object>();
+            for (int index = 0; index < tmpParameters.size(); index++) {
+                Object tmpParameter = tmpParameters.get(index);
+                Class<?> tmpClass = tmpClasses.get(index);
+                Object resParameter = objectMapper.convertValue(tmpParameter, tmpClass);
+                resParameters.add(resParameter);
+            }
+            return resParameters;
+        } else {
+            throw new ConflictException();
+        }
     }
 }
