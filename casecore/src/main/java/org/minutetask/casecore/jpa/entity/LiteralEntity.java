@@ -35,26 +35,26 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "cc_keytype", indexes = { //
-        @Index(name = "ccux_keytype", columnList = "name", unique = true) //
+@Table(name = "cc_literal", indexes = { //
+        @Index(name = "ccux_literal", columnList = "value", unique = true) //
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString(onlyExplicitlyIncluded = true)
-public class KeyTypeEntity {
+public class LiteralEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "cc_keytype_id")
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "cc_literal_id")
     @Column(name = "id", nullable = false)
     @ToString.Include
     @TableGenerator( //
-            name = "cc_keytype_id", table = "cc_sequence", //
-            pkColumnValue = "cc_keytype_id", initialValue = 1, allocationSize = 5 //
+            name = "cc_literal_id", table = "cc_sequence", //
+            pkColumnValue = "cc_literal_id", initialValue = 1, allocationSize = 5 //
     )
     private Long id = null;
 
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "value", nullable = false, length = 500)
     @ToString.Include
-    private String name;
+    private String value;
 }

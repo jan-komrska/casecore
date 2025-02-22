@@ -1,4 +1,4 @@
-package org.minutetask.casecore.service.api;
+package org.minutetask.casecore.jpa.repository;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,11 @@ package org.minutetask.casecore.service.api;
  * =========================LICENSE_END==================================
  */
 
-public interface KeyTypeService {
-    public Long getKeyTypeId(String type);
+import org.minutetask.casecore.jpa.entity.LiteralEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface LiteralRepository extends JpaRepository<LiteralEntity, Long> {
+    public LiteralEntity findByValue(String value);
 }

@@ -43,7 +43,7 @@ import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseKeyEntity;
 import org.minutetask.casecore.jpa.repository.UseCaseKeyRepository;
 import org.minutetask.casecore.jpa.repository.UseCaseRepository;
-import org.minutetask.casecore.service.api.KeyTypeService;
+import org.minutetask.casecore.service.api.LiteralService;
 import org.minutetask.casecore.service.api.UseCaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,7 +60,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseServiceImpl implements UseCaseService {
     @Autowired
-    private KeyTypeService keyTypeService;
+    private LiteralService literalService;
 
     @Autowired
     private UseCaseRepository useCaseRepository;
@@ -140,13 +140,13 @@ public class UseCaseServiceImpl implements UseCaseService {
         //
         if (!useCase.isClosed()) {
             for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
-                Long keyType = keyTypeService.getKeyTypeId(entry.getKey());
+                Long keyTypeId = literalService.getIdFromValue(entry.getKey());
                 String keyValue = objectMapper.convertValue(entry.getValue(), String.class);
                 //
                 if (StringUtils.isEmpty(keyValue)) {
                     // DO NOTHING
-                } else if (useCaseKeyMap.containsKey(keyType)) {
-                    UseCaseKeyEntity entity = useCaseKeyMap.remove(keyType);
+                } else if (useCaseKeyMap.containsKey(keyTypeId)) {
+                    UseCaseKeyEntity entity = useCaseKeyMap.remove(keyTypeId);
                     if (!Objects.equals(keyValue, entity.getValue())) {
                         entity.setValue(keyValue);
                         //
@@ -157,7 +157,7 @@ public class UseCaseServiceImpl implements UseCaseService {
                     }
                 } else {
                     UseCaseKeyEntity entity = new UseCaseKeyEntity();
-                    entity.setType(keyType);
+                    entity.setType(keyTypeId);
                     entity.setValue(keyValue);
                     entity.setUseCase(useCase);
                     //
@@ -253,7 +253,7 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     @Override
     public UseCaseEntity getUseCase(String keyType, String keyValue) {
-        Long keyTypeId = keyTypeService.getKeyTypeId(keyType);
+        Long keyTypeId = literalService.getIdFromValue(keyType);
         UseCaseKeyEntity useCaseKeyEntity = useCaseKeyRepository.findByTypeAndValue(keyTypeId, keyValue);
         if (useCaseKeyEntity != null) {
             return useCaseKeyEntity.getUseCase();

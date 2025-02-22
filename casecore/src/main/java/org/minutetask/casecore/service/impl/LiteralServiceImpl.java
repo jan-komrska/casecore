@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.minutetask.casecore.exception.UnexpectedException;
-import org.minutetask.casecore.jpa.entity.KeyTypeEntity;
-import org.minutetask.casecore.jpa.repository.KeyTypeRepository;
-import org.minutetask.casecore.service.api.KeyTypeService;
+import org.minutetask.casecore.jpa.entity.LiteralEntity;
+import org.minutetask.casecore.jpa.repository.LiteralRepository;
+import org.minutetask.casecore.service.api.LiteralService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,26 +40,26 @@ import jakarta.persistence.PersistenceException;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
-public class KeyTypeServiceImpl implements KeyTypeService {
+public class LiteralServiceImpl implements LiteralService {
     @Lazy
     @Autowired
-    private KeyTypeServiceImpl self;
+    private LiteralServiceImpl self;
 
     @Autowired
-    private KeyTypeRepository keyTypeRepository;
+    private LiteralRepository literalRepository;
 
     @Value("${case-core.key-type.provisioning.repeat-count:3}")
     private int repeatCount;
     @Value("${case-core.key-type.provisioning.repeat-delay:100}")
     private int repeatDelay;
 
-    private Map<String, Long> keyTypeMap = new ConcurrentHashMap<String, Long>();
+    private Map<String, Long> literalIdMap = new ConcurrentHashMap<String, Long>();
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Long findKeyTypeIdInDb(String type) {
-        KeyTypeEntity entity = keyTypeRepository.findByName(type);
+    public Long findLiteralIdInDb(String value) {
+        LiteralEntity entity = literalRepository.findByValue(value);
         if (entity != null) {
-            keyTypeMap.put(entity.getName(), entity.getId());
+            literalIdMap.put(entity.getValue(), entity.getId());
             return entity.getId();
         } else {
             return null;
@@ -67,32 +67,32 @@ public class KeyTypeServiceImpl implements KeyTypeService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Long saveKeyTypeIdInDb(String type) {
-        KeyTypeEntity entity = new KeyTypeEntity();
-        entity.setName(type);
+    public Long saveLiteralIdInDb(String value) {
+        LiteralEntity entity = new LiteralEntity();
+        entity.setValue(value);
         //
-        entity = keyTypeRepository.save(entity);
-        keyTypeMap.put(entity.getName(), entity.getId());
+        entity = literalRepository.save(entity);
+        literalIdMap.put(entity.getValue(), entity.getId());
         return entity.getId();
     }
 
     @Override
-    public Long getKeyTypeId(String type) {
+    public Long getIdFromValue(String value) {
         PersistenceException exception = null;
         //
         for (int index = 0; index < repeatCount; index++) {
             try {
-                Long cachedId = keyTypeMap.get(type);
+                Long cachedId = literalIdMap.get(value);
                 if (cachedId != null) {
                     return cachedId;
                 }
                 //
-                Long existingId = self.findKeyTypeIdInDb(type);
+                Long existingId = self.findLiteralIdInDb(value);
                 if (existingId != null) {
                     return existingId;
                 }
                 //
-                Long newId = self.saveKeyTypeIdInDb(type);
+                Long newId = self.saveLiteralIdInDb(value);
                 if (newId != null) {
                     return newId;
                 }
