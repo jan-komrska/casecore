@@ -61,7 +61,7 @@ public class UseCaseActionEntity {
     @ToString.Include
     @TableGenerator( //
             name = "cc_usecaseaction_id", table = "cc_sequence", //
-            pkColumnValue = "cc_usecaseaction_id", initialValue = 1, allocationSize = 50 //
+            pkColumnValue = "cc_usecaseaction_id", initialValue = 0, allocationSize = 50 //
     )
     private Long id = null;
 

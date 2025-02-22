@@ -53,7 +53,7 @@ public class UseCaseKeyEntity {
     @ToString.Include
     @TableGenerator( //
             name = "cc_usecasekey_id", table = "cc_sequence", //
-            pkColumnValue = "cc_usecasekey_id", initialValue = 1, allocationSize = 50 //
+            pkColumnValue = "cc_usecasekey_id", initialValue = 0, allocationSize = 50 //
     )
     private Long id = null;
 

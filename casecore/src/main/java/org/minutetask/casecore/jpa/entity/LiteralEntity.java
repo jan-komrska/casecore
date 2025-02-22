@@ -50,7 +50,7 @@ public class LiteralEntity {
     @ToString.Include
     @TableGenerator( //
             name = "cc_literal_id", table = "cc_sequence", //
-            pkColumnValue = "cc_literal_id", initialValue = 1, allocationSize = 5 //
+            pkColumnValue = "cc_literal_id", initialValue = 0, allocationSize = 5 //
     )
     private Long id = null;
 
