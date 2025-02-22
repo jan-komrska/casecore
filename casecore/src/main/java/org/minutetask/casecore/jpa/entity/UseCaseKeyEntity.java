@@ -39,7 +39,7 @@ import lombok.ToString;
 
 @Entity
 @Table(name = "cc_usecasekey", indexes = { //
-        @Index(name = "ccux_usecasekey", columnList = "type, value", unique = true) //
+        @Index(name = "ccux_usecasekey", columnList = "type_id, value", unique = true) //
 })
 @Getter
 @Setter
@@ -61,9 +61,9 @@ public class UseCaseKeyEntity {
     @JoinColumn(name = "usecase_id", nullable = false)
     private UseCaseEntity useCase = null;
 
-    @Column(name = "type", nullable = false)
+    @Column(name = "type_id", nullable = false)
     @ToString.Include
-    private Long type;
+    private Long typeId;
 
     @Column(name = "value", nullable = false, length = 50)
     @ToString.Include

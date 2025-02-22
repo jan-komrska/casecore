@@ -135,7 +135,7 @@ public class UseCaseServiceImpl implements UseCaseService {
         List<UseCaseKeyEntity> useCaseKeyDiff = new ArrayList<UseCaseKeyEntity>();
         Map<Long, UseCaseKeyEntity> useCaseKeyMap = new HashMap<Long, UseCaseKeyEntity>();
         for (UseCaseKeyEntity useCaseKey : useCase.getUseCaseKeys()) {
-            useCaseKeyMap.put(useCaseKey.getType(), useCaseKey);
+            useCaseKeyMap.put(useCaseKey.getTypeId(), useCaseKey);
         }
         //
         if (!useCase.isClosed()) {
@@ -157,7 +157,7 @@ public class UseCaseServiceImpl implements UseCaseService {
                     }
                 } else {
                     UseCaseKeyEntity entity = new UseCaseKeyEntity();
-                    entity.setType(keyTypeId);
+                    entity.setTypeId(keyTypeId);
                     entity.setValue(keyValue);
                     entity.setUseCase(useCase);
                     //
@@ -254,7 +254,7 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Override
     public UseCaseEntity getUseCase(String keyType, String keyValue) {
         Long keyTypeId = literalService.getIdFromValue(keyType);
-        UseCaseKeyEntity useCaseKeyEntity = useCaseKeyRepository.findByTypeAndValue(keyTypeId, keyValue);
+        UseCaseKeyEntity useCaseKeyEntity = useCaseKeyRepository.findByTypeIdAndValue(keyTypeId, keyValue);
         if (useCaseKeyEntity != null) {
             return useCaseKeyEntity.getUseCase();
         } else {
