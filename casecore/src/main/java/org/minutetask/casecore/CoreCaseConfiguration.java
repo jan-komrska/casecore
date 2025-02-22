@@ -1,8 +1,5 @@
 package org.minutetask.casecore;
 
-import org.minutetask.casecore.jpa.entity.UseCaseEntity;
-import org.springframework.beans.factory.config.BeanDefinition;
-
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -23,6 +20,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
+import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -46,6 +46,7 @@ public class CoreCaseConfiguration {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         //
         UseCaseEntity.setObjectMapper(objectMapper);
+        UseCaseActionEntity.setObjectMapper(objectMapper);
         return objectMapper;
     }
 }

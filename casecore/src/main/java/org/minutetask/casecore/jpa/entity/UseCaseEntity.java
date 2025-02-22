@@ -206,6 +206,13 @@ public class UseCaseEntity {
         return useCaseKeys;
     }
 
+    public List<UseCaseActionEntity> getUseCaseActions() {
+        if (useCaseActions == null) {
+            useCaseActions = new ArrayList<UseCaseActionEntity>();
+        }
+        return useCaseActions;
+    }
+
     public Map<String, Object> getKeys() {
         if (keys == null) {
             keys = new HashMap<String, Object>();
