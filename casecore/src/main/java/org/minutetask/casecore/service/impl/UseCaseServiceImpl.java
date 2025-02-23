@@ -81,15 +81,6 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
         //
         try {
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
-            for (Field parameterField : parameterFields) {
-                String parameterName = parameterField.getName();
-                Object parameterValue = FieldUtils.readField(parameterField, data, true);
-                parameters.put(parameterName, parameterValue);
-            }
-            useCase.getUseCaseData().getParameters().putAll(parameters);
-            //
             List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), IdRef.class);
             for (Field idField : idFields) {
                 Object idValue = FieldUtils.readField(idField, data, true);
@@ -98,6 +89,15 @@ public class UseCaseServiceImpl implements UseCaseService {
                     throw new ConflictException();
                 }
             }
+            //
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
+            for (Field parameterField : parameterFields) {
+                String parameterName = parameterField.getName();
+                Object parameterValue = FieldUtils.readField(parameterField, data, true);
+                parameters.put(parameterName, parameterValue);
+            }
+            useCase.getUseCaseData().getParameters().putAll(parameters);
             //
             List<Field> closedFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ClosedRef.class);
             for (Field closedField : closedFields) {
