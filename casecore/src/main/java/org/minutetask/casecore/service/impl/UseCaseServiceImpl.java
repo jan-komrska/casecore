@@ -76,7 +76,6 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     private void updateUcData(UseCaseEntity useCase, Object data) {
         if (data == null) {
-            useCase.applyChanges();
             return;
         }
         //
@@ -125,8 +124,6 @@ public class UseCaseServiceImpl implements UseCaseService {
                 services.put(contractClassId, serviceName);
             }
             useCase.getUseCaseData().getServices().putAll(services);
-            //
-            useCase.applyChanges();
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
         }
@@ -269,6 +266,7 @@ public class UseCaseServiceImpl implements UseCaseService {
     @Override
     @Transactional
     public UseCaseEntity updateUseCase(UseCaseEntity useCase) {
+        useCase.applyChanges();
         useCase.setUpdatedDate(LocalDateTime.now());
         //
         useCase = useCaseRepository.save(useCase);
