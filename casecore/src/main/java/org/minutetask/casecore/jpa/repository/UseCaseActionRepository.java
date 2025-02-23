@@ -25,5 +25,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UseCaseActionRepository extends JpaRepository<Long, UseCaseActionEntity> {
+public interface UseCaseActionRepository extends JpaRepository<UseCaseActionEntity, Long> {
 }

@@ -22,15 +22,11 @@ package org.minutetask.casecore.jpa.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.CascadeType;
@@ -106,27 +102,11 @@ public class UseCaseEntity {
         return objectMapper;
     }
 
-    private static final TypeReference<Map<String, Object>> DATA_REFERENCE = //
-            new TypeReference<Map<String, Object>>() {
-            };
-
-    private static final String KEYS_ATTRIBUTE = "keys";
-    private static final String PARAMETERS_ATTRIBUTE = "parameters";
-    private static final String SERVICES_ATTRIBUTE = "services";
-
     //
 
     @Getter(AccessLevel.NONE)
     @Transient
-    private Map<String, Object> keys = new HashMap<String, Object>();
-
-    @Getter(AccessLevel.NONE)
-    @Transient
-    private Map<String, Object> parameters = new HashMap<String, Object>();
-
-    @Getter(AccessLevel.NONE)
-    @Transient
-    private Map<Class<?>, String> services = new HashMap<Class<?>, String>();
+    private UseCaseData useCaseData = new UseCaseData();
 
     @Transient
     private Object source = null;
@@ -134,61 +114,20 @@ public class UseCaseEntity {
     @PostLoad
     public void postLoad() {
         try {
-            keys = new HashMap<String, Object>();
-            parameters = new HashMap<String, Object>();
-            services = new HashMap<Class<?>, String>();
-            //
             if (StringUtils.isNotEmpty(dataAsJson)) {
-                Map<String, Object> dataAsMap = getObjectMapper().readValue(dataAsJson, DATA_REFERENCE);
-                //
-                @SuppressWarnings("unchecked")
-                Map<String, Object> tmpKeys = (Map<String, Object>) dataAsMap.get(KEYS_ATTRIBUTE);
-                if (MapUtils.isNotEmpty(tmpKeys)) {
-                    keys.putAll(tmpKeys);
-                }
-                //
-                @SuppressWarnings("unchecked")
-                Map<String, Object> tmpParameters = (Map<String, Object>) dataAsMap.get(PARAMETERS_ATTRIBUTE);
-                if (MapUtils.isNotEmpty(tmpParameters)) {
-                    parameters.putAll(tmpParameters);
-                }
-                //
-                @SuppressWarnings("unchecked")
-                Map<String, String> tmpServices = (Map<String, String>) dataAsMap.get(SERVICES_ATTRIBUTE);
-                if (MapUtils.isNotEmpty(tmpServices)) {
-                    for (Map.Entry<String, String> entry : tmpServices.entrySet()) {
-                        Class<?> contractClass = Class.forName(entry.getKey(), true, Thread.currentThread().getContextClassLoader());
-                        services.put(contractClass, entry.getValue());
-                    }
-                }
+                useCaseData = getObjectMapper().readValue(dataAsJson, UseCaseData.class);
+            } else {
+                useCaseData = new UseCaseData();
             }
-        } catch (JsonProcessingException | ClassNotFoundException ex) {
+        } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
         }
     }
 
     public void applyChanges() {
         try {
-            Map<String, Object> dataAsMap = new HashMap<String, Object>();
-            //
-            if (MapUtils.isNotEmpty(keys)) {
-                dataAsMap.put(KEYS_ATTRIBUTE, new HashMap<String, Object>(keys));
-            }
-            if (MapUtils.isNotEmpty(parameters)) {
-                dataAsMap.put(PARAMETERS_ATTRIBUTE, new HashMap<String, Object>(parameters));
-            }
-            if (MapUtils.isNotEmpty(services)) {
-                Map<String, String> tmpServices = new HashMap<String, String>();
-                for (Map.Entry<Class<?>, String> entry : services.entrySet()) {
-                    String contractClass = entry.getKey().getName();
-                    tmpServices.put(contractClass, entry.getValue());
-                }
-                //
-                dataAsMap.put(SERVICES_ATTRIBUTE, tmpServices);
-            }
-            //
-            if (MapUtils.isNotEmpty(dataAsMap)) {
-                dataAsJson = getObjectMapper().writeValueAsString(dataAsMap);
+            if ((useCaseData != null) && useCaseData.isNotEmpty()) {
+                dataAsJson = getObjectMapper().writeValueAsString(useCaseData);
             } else {
                 dataAsJson = null;
             }
@@ -213,24 +152,12 @@ public class UseCaseEntity {
         return useCaseActions;
     }
 
-    public Map<String, Object> getKeys() {
-        if (keys == null) {
-            keys = new HashMap<String, Object>();
-        }
-        return keys;
-    }
+    //
 
-    public Map<String, Object> getParameters() {
-        if (parameters == null) {
-            parameters = new HashMap<String, Object>();
+    public UseCaseData getUseCaseData() {
+        if (useCaseData == null) {
+            useCaseData = new UseCaseData();
         }
-        return parameters;
-    }
-
-    public Map<Class<?>, String> getServices() {
-        if (services == null) {
-            services = new HashMap<Class<?>, String>();
-        }
-        return services;
+        return useCaseData;
     }
 }

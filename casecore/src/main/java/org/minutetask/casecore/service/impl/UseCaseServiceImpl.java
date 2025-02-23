@@ -97,15 +97,6 @@ public class UseCaseServiceImpl implements UseCaseService {
                 useCase.setClosed(Boolean.TRUE.equals(closedValue));
             }
             //
-            Map<String, Object> keys = new HashMap<String, Object>();
-            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
-            for (Field keyField : keyFields) {
-                String keyType = keyField.getAnnotation(KeyRef.class).value();
-                Object keyValue = FieldUtils.readField(keyField, data, true);
-                keys.put(keyType, keyValue);
-            }
-            useCase.getKeys().putAll(keys);
-            //
             Map<String, Object> parameters = new HashMap<String, Object>();
             List<Field> parameterFields = FieldUtils.getAllFieldsList(data.getClass());
             for (Field parameterField : parameterFields) {
@@ -113,16 +104,27 @@ public class UseCaseServiceImpl implements UseCaseService {
                 Object parameterValue = FieldUtils.readField(parameterField, data, true);
                 parameters.put(parameterName, parameterValue);
             }
-            useCase.getParameters().putAll(parameters);
+            useCase.getUseCaseData().getParameters().putAll(parameters);
             //
-            Map<Class<?>, String> services = new HashMap<Class<?>, String>();
+            Map<Long, Object> keys = new HashMap<Long, Object>();
+            List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
+            for (Field keyField : keyFields) {
+                String keyType = keyField.getAnnotation(KeyRef.class).value();
+                Long keyTypeId = literalService.getIdFromValue(keyType);
+                Object keyValue = FieldUtils.readField(keyField, data, true);
+                keys.put(keyTypeId, keyValue);
+            }
+            useCase.getUseCaseData().getKeys().putAll(keys);
+            //
+            Map<Long, String> services = new HashMap<Long, String>();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
+                Long contractClassId = literalService.getIdFromValue(contractClass);
                 String serviceName = (String) FieldUtils.readField(serviceField, data, true);
-                services.put(contractClass, serviceName);
+                services.put(contractClassId, serviceName);
             }
-            useCase.getServices().putAll(services);
+            useCase.getUseCaseData().getServices().putAll(services);
             //
             useCase.applyChanges();
         } catch (IllegalAccessException ex) {
@@ -139,8 +141,8 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
         //
         if (!useCase.isClosed()) {
-            for (Map.Entry<String, Object> entry : useCase.getKeys().entrySet()) {
-                Long keyTypeId = literalService.getIdFromValue(entry.getKey());
+            for (Map.Entry<Long, Object> entry : useCase.getUseCaseData().getKeys().entrySet()) {
+                Long keyTypeId = entry.getKey();
                 String keyValue = objectMapper.convertValue(entry.getValue(), String.class);
                 //
                 if (StringUtils.isEmpty(keyValue)) {
@@ -190,7 +192,7 @@ public class UseCaseServiceImpl implements UseCaseService {
         }
         //
         try {
-            Map<String, Object> parameters = useCase.getParameters();
+            Map<String, Object> parameters = useCase.getUseCaseData().getParameters();
             List<Field> parameterFields = FieldUtils.getAllFieldsList(dataClass);
             for (Field parameterField : parameterFields) {
                 String parameterName = parameterField.getName();
@@ -199,19 +201,21 @@ public class UseCaseServiceImpl implements UseCaseService {
                 FieldUtils.writeField(parameterField, data, parameterValue, true);
             }
             //
-            Map<Class<?>, String> services = useCase.getServices();
+            Map<Long, String> services = useCase.getUseCaseData().getServices();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
-                String serviceName = services.get(contractClass);
+                Long contractClassId = literalService.getIdFromValue(contractClass);
+                String serviceName = services.get(contractClassId);
                 FieldUtils.writeField(serviceField, data, serviceName, true);
             }
             //
-            Map<String, Object> keys = useCase.getKeys();
+            Map<Long, Object> keys = useCase.getUseCaseData().getKeys();
             List<Field> keyFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), KeyRef.class);
             for (Field keyField : keyFields) {
                 String keyType = keyField.getAnnotation(KeyRef.class).value();
-                Object keyValue = keys.get(keyType);
+                Long keyTypeId = literalService.getIdFromValue(keyType);
+                Object keyValue = keys.get(keyTypeId);
                 keyValue = objectMapper.convertValue(keyValue, keyField.getType());
                 FieldUtils.writeField(keyField, data, keyValue, true);
             }
