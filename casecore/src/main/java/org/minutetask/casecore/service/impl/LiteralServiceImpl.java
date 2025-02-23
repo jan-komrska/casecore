@@ -23,6 +23,8 @@ package org.minutetask.casecore.service.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
+import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.LiteralEntity;
 import org.minutetask.casecore.jpa.repository.LiteralRepository;
@@ -78,6 +80,10 @@ public class LiteralServiceImpl implements LiteralService {
 
     @Override
     public Long getIdFromValue(String value) {
+        if (StringUtils.isEmpty(value)) {
+            throw new BadRequestException();
+        }
+        //
         PersistenceException exception = null;
         //
         for (int index = 0; index < repeatCount; index++) {
@@ -108,5 +114,10 @@ public class LiteralServiceImpl implements LiteralService {
         }
         //
         throw new UnexpectedException(exception);
+    }
+
+    @Override
+    public Long getIdFromValue(Class<?> value) {
+        return getIdFromValue((value != null) ? value.getName() : null);
     }
 }

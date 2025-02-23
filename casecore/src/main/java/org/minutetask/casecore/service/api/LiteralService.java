@@ -22,4 +22,6 @@ package org.minutetask.casecore.service.api;
 
 public interface LiteralService {
     public Long getIdFromValue(String value);
+
+    public Long getIdFromValue(Class<?> value);
 }
