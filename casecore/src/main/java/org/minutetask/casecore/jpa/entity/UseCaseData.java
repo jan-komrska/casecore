@@ -23,6 +23,8 @@ package org.minutetask.casecore.jpa.entity;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,13 +35,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UseCaseData {
     @Getter(AccessLevel.NONE)
-    private Map<String, Object> parameters = new HashMap<String, Object>();
+    private Map<String, Object> parameters = null;
 
     @Getter(AccessLevel.NONE)
-    private Map<Long, Object> keys = new HashMap<Long, Object>();
+    private Map<Long, Object> keys = null;
 
     @Getter(AccessLevel.NONE)
-    private Map<Long, String> services = new HashMap<Long, String>();
+    private Map<Long, String> services = null;
 
     //
 
@@ -64,11 +66,8 @@ public class UseCaseData {
         return services;
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return getParameters().isEmpty() && getKeys().isEmpty() && getServices().isEmpty();
-    }
-
-    public boolean isNotEmpty() {
-        return !isEmpty();
     }
 }

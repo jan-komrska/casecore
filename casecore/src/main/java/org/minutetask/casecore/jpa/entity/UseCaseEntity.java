@@ -106,7 +106,7 @@ public class UseCaseEntity {
 
     @Getter(AccessLevel.NONE)
     @Transient
-    private UseCaseData useCaseData = new UseCaseData();
+    private UseCaseData useCaseData = null;
 
     @Transient
     private Object source = null;
@@ -115,9 +115,9 @@ public class UseCaseEntity {
     public void postLoad() {
         try {
             if (StringUtils.isNotEmpty(dataAsJson)) {
-                useCaseData = getObjectMapper().readValue(dataAsJson, UseCaseData.class);
+                setUseCaseData(getObjectMapper().readValue(dataAsJson, UseCaseData.class));
             } else {
-                useCaseData = new UseCaseData();
+                setUseCaseData(null);
             }
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
@@ -126,8 +126,8 @@ public class UseCaseEntity {
 
     public void applyChanges() {
         try {
-            if ((useCaseData != null) && useCaseData.isNotEmpty()) {
-                dataAsJson = getObjectMapper().writeValueAsString(useCaseData);
+            if (!getUseCaseData().isEmpty()) {
+                dataAsJson = getObjectMapper().writeValueAsString(getUseCaseData());
             } else {
                 dataAsJson = null;
             }
@@ -151,8 +151,6 @@ public class UseCaseEntity {
         }
         return useCaseActions;
     }
-
-    //
 
     public UseCaseData getUseCaseData() {
         if (useCaseData == null) {
