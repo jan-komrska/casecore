@@ -21,19 +21,10 @@ package org.minutetask.casecore.jpa.entity;
  */
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.minutetask.casecore.exception.ConflictException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.Column;
@@ -112,31 +103,19 @@ public class UseCaseActionEntity {
         return objectMapper;
     }
 
-    private static final TypeReference<Map<String, Object>> DATA_REFERENCE = //
-            new TypeReference<Map<String, Object>>() {
-            };
-
-    private static final String PARAMETERS_ATTRIBUTE = "parameters";
-
     //
 
     @Getter(AccessLevel.NONE)
     @Transient
-    private List<Object> parameters = new ArrayList<Object>();
+    private UseCaseActionData useCaseActionData = null;
 
     @PostLoad
     public void postLoad() {
         try {
-            parameters = new ArrayList<Object>();
-            //
             if (StringUtils.isNotEmpty(dataAsJson)) {
-                Map<String, Object> dataAsMap = getObjectMapper().readValue(dataAsJson, DATA_REFERENCE);
-                //
-                @SuppressWarnings("unchecked")
-                List<Object> tmpParameters = (List<Object>) dataAsMap.get(PARAMETERS_ATTRIBUTE);
-                if (CollectionUtils.isNotEmpty(tmpParameters)) {
-                    parameters.addAll(tmpParameters);
-                }
+                setUseCaseActionData(getObjectMapper().readValue(dataAsJson, UseCaseActionData.class));
+            } else {
+                setUseCaseActionData(null);
             }
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(ex);
@@ -145,14 +124,8 @@ public class UseCaseActionEntity {
 
     public void applyChanges() {
         try {
-            Map<String, Object> dataAsMap = new HashMap<String, Object>();
-            //
-            if (CollectionUtils.isNotEmpty(parameters)) {
-                dataAsMap.put(PARAMETERS_ATTRIBUTE, new ArrayList<Object>(parameters));
-            }
-            //
-            if (MapUtils.isNotEmpty(dataAsMap)) {
-                dataAsJson = getObjectMapper().writeValueAsString(dataAsMap);
+            if (!getUseCaseActionData().isEmpty()) {
+                dataAsJson = getObjectMapper().writeValueAsString(getUseCaseActionData());
             } else {
                 dataAsJson = null;
             }
@@ -163,28 +136,10 @@ public class UseCaseActionEntity {
 
     //
 
-    public List<Object> getParameters() {
-        if (parameters == null) {
-            parameters = new ArrayList<Object>();
+    public UseCaseActionData getUseCaseActionData() {
+        if (useCaseActionData == null) {
+            useCaseActionData = new UseCaseActionData();
         }
-        return parameters;
-    }
-
-    public List<Object> getParameters(List<Class<?>> tmpClasses) {
-        List<Object> tmpParameters = ListUtils.emptyIfNull(parameters);
-        tmpClasses = ListUtils.emptyIfNull(tmpClasses);
-        //
-        if (parameters.size() == tmpClasses.size()) {
-            List<Object> resParameters = new ArrayList<Object>();
-            for (int index = 0; index < tmpParameters.size(); index++) {
-                Object tmpParameter = tmpParameters.get(index);
-                Class<?> tmpClass = tmpClasses.get(index);
-                Object resParameter = objectMapper.convertValue(tmpParameter, tmpClass);
-                resParameters.add(resParameter);
-            }
-            return resParameters;
-        } else {
-            throw new ConflictException();
-        }
+        return useCaseActionData;
     }
 }

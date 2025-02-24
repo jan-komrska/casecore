@@ -55,14 +55,28 @@ public class LiteralServiceImpl implements LiteralService {
     @Value("${case-core.key-type.provisioning.repeat-delay:100}")
     private int repeatDelay;
 
+    private Map<Long, String> literalMap = new ConcurrentHashMap<Long, String>();
     private Map<String, Long> literalIdMap = new ConcurrentHashMap<String, Long>();
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Long findLiteralIdInDb(String value) {
         LiteralEntity entity = literalRepository.findByValue(value);
         if (entity != null) {
+            literalMap.put(entity.getId(), entity.getValue());
             literalIdMap.put(entity.getValue(), entity.getId());
             return entity.getId();
+        } else {
+            return null;
+        }
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public String findLiteralInDb(Long id) {
+        LiteralEntity entity = literalRepository.findById(id).orElse(null);
+        if (entity != null) {
+            literalMap.put(entity.getId(), entity.getValue());
+            literalIdMap.put(entity.getValue(), entity.getId());
+            return entity.getValue();
         } else {
             return null;
         }
@@ -74,6 +88,7 @@ public class LiteralServiceImpl implements LiteralService {
         entity.setValue(value);
         //
         entity = literalRepository.save(entity);
+        literalMap.put(entity.getId(), entity.getValue());
         literalIdMap.put(entity.getValue(), entity.getId());
         return entity.getId();
     }
@@ -119,5 +134,34 @@ public class LiteralServiceImpl implements LiteralService {
     @Override
     public Long getIdFromValue(Class<?> value) {
         return getIdFromValue((value != null) ? value.getName() : null);
+    }
+
+    @Override
+    public String getValueFromId(Long id) {
+        if (id == null) {
+            throw new BadRequestException();
+        }
+        //
+        String cachedValue = literalMap.get(id);
+        if (StringUtils.isNotEmpty(cachedValue)) {
+            return cachedValue;
+        }
+        //
+        String existingValue = self.findLiteralInDb(id);
+        if (StringUtils.isNotEmpty(existingValue)) {
+            return existingValue;
+        }
+        //
+        throw new UnexpectedException();
+    }
+
+    @Override
+    public Class<?> getClassFromId(Long id) {
+        try {
+            String value = getValueFromId(id);
+            return Class.forName(value, true, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException ex) {
+            throw new UnexpectedException(ex);
+        }
     }
 }
