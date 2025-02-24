@@ -23,8 +23,7 @@ package org.minutetask.casecore.service.api;
 public interface LiteralService {
     public Long getIdFromValue(String value);
 
-    // TODO rename to getIdFromClass
-    public Long getIdFromValue(Class<?> value);
+    public Long getIdFromClass(Class<?> value);
 
     public String getValueFromId(Long id);
 

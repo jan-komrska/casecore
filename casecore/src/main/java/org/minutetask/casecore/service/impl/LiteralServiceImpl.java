@@ -132,7 +132,7 @@ public class LiteralServiceImpl implements LiteralService {
     }
 
     @Override
-    public Long getIdFromValue(Class<?> value) {
+    public Long getIdFromClass(Class<?> value) {
         return getIdFromValue((value != null) ? value.getName() : null);
     }
 

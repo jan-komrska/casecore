@@ -119,7 +119,7 @@ public class UseCaseServiceImpl implements UseCaseService {
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
-                Long contractClassId = literalService.getIdFromValue(contractClass);
+                Long contractClassId = literalService.getIdFromClass(contractClass);
                 String serviceName = (String) FieldUtils.readField(serviceField, data, true);
                 services.put(contractClassId, serviceName);
             }
@@ -224,7 +224,7 @@ public class UseCaseServiceImpl implements UseCaseService {
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
-                Long contractClassId = literalService.getIdFromValue(contractClass);
+                Long contractClassId = literalService.getIdFromClass(contractClass);
                 String serviceName = services.get(contractClassId);
                 FieldUtils.writeField(serviceField, data, serviceName, true);
             }
