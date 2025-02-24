@@ -114,16 +114,19 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     @Transactional
-    public void saveUseCase(Object useCase) {
+    public <UseCase> UseCase saveUseCase(UseCase useCase) {
         Long useCaseId = getUseCaseId(useCase);
         if (useCaseId != null) {
             UseCaseEntity useCaseEntity = useCaseService.getUseCase(useCaseId);
             useCaseService.updateUseCaseData(useCaseEntity, useCase);
             useCaseService.saveUseCase(useCaseEntity);
+            return useCase;
         } else {
             UseCaseEntity useCaseEntity = useCaseService.newUseCase();
             useCaseService.updateUseCaseData(useCaseEntity, useCase);
-            useCaseService.saveUseCase(useCaseEntity);
+            useCaseEntity = useCaseService.saveUseCase(useCaseEntity);
+            setUseCaseId(useCase, useCaseEntity.getId());
+            return useCase;
         }
     }
 
