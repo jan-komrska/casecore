@@ -238,13 +238,12 @@ public class UseCaseServiceImpl implements UseCaseService {
     //
 
     @Override
-    @Transactional
-    public UseCaseEntity createUseCase() {
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public UseCaseEntity newUseCase() {
         UseCaseEntity useCase = new UseCaseEntity();
-        //
         useCase.setClosed(false);
         useCase.setCreatedDate(LocalDateTime.now());
-        return useCaseRepository.save(useCase);
+        return useCase;
     }
 
     @Override
@@ -265,7 +264,7 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     @Override
     @Transactional
-    public UseCaseEntity updateUseCase(UseCaseEntity useCase) {
+    public UseCaseEntity saveUseCase(UseCaseEntity useCase) {
         useCase.applyChanges();
         useCase.setUpdatedDate(LocalDateTime.now());
         //

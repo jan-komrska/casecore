@@ -119,12 +119,11 @@ public class UseCaseManagerImpl implements UseCaseManager {
         if (useCaseId != null) {
             UseCaseEntity useCaseEntity = useCaseService.getUseCase(useCaseId);
             useCaseService.updateUseCaseData(useCaseEntity, useCase);
-            useCaseService.updateUseCase(useCaseEntity);
+            useCaseService.saveUseCase(useCaseEntity);
         } else {
-            UseCaseEntity useCaseEntity = useCaseService.createUseCase();
-            setUseCaseId(useCase, useCaseEntity.getId());
+            UseCaseEntity useCaseEntity = useCaseService.newUseCase();
             useCaseService.updateUseCaseData(useCaseEntity, useCase);
-            useCaseService.updateUseCase(useCaseEntity);
+            useCaseService.saveUseCase(useCaseEntity);
         }
     }
 

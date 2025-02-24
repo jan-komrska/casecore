@@ -22,15 +22,14 @@ package org.minutetask.casecore.service.api;
 
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 
-// TODO review methods: newUseCase, saveUseCase
 public interface UseCaseService {
-    public UseCaseEntity createUseCase();
+    public UseCaseEntity newUseCase();
 
     public UseCaseEntity getUseCase(Long id);
 
     public UseCaseEntity getUseCase(String keyType, String keyValue);
 
-    public UseCaseEntity updateUseCase(UseCaseEntity useCase);
+    public UseCaseEntity saveUseCase(UseCaseEntity useCase);
 
     public void deleteUseCase(Long id);
 
