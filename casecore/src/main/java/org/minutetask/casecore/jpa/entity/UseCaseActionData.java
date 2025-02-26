@@ -36,6 +36,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UseCaseActionData {
+    private Long serviceClassId;
+
     private Long methodClassId;
 
     private String methodName;
@@ -64,6 +66,8 @@ public class UseCaseActionData {
 
     @JsonIgnore
     public boolean isEmpty() {
-        return (methodClassId == null) && StringUtils.isEmpty(methodName);
+        return (serviceClassId == null) //
+                && (methodClassId == null) && StringUtils.isEmpty(methodName) //
+                && getParameterClassIds().isEmpty() && getParameters().isEmpty();
     }
 }
