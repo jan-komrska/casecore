@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.LiteralEntity;
 import org.minutetask.casecore.jpa.repository.LiteralRepository;
@@ -96,7 +95,7 @@ public class LiteralServiceImpl implements LiteralService {
     @Override
     public Long getIdFromValue(String value) {
         if (StringUtils.isEmpty(value)) {
-            throw new BadRequestException();
+            return null;
         }
         //
         PersistenceException exception = null;
@@ -133,13 +132,13 @@ public class LiteralServiceImpl implements LiteralService {
 
     @Override
     public Long getIdFromClass(Class<?> value) {
-        return getIdFromValue((value != null) ? value.getName() : null);
+        return (value != null) ? getIdFromValue(value.getName()) : null;
     }
 
     @Override
     public String getValueFromId(Long id) {
         if (id == null) {
-            throw new BadRequestException();
+            return null;
         }
         //
         String cachedValue = literalMap.get(id);
@@ -157,6 +156,10 @@ public class LiteralServiceImpl implements LiteralService {
 
     @Override
     public Class<?> getClassFromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        //
         try {
             String value = getValueFromId(id);
             return Class.forName(value, true, Thread.currentThread().getContextClassLoader());

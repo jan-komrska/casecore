@@ -41,7 +41,7 @@ public class UseCaseData {
     private Map<Long, Object> keys = null;
 
     @Getter(AccessLevel.NONE)
-    private Map<Long, String> services = null;
+    private Map<Long, Long> services = null;
 
     //
 
@@ -59,9 +59,9 @@ public class UseCaseData {
         return keys;
     }
 
-    public Map<Long, String> getServices() {
+    public Map<Long, Long> getServices() {
         if (services == null) {
-            services = new HashMap<Long, String>();
+            services = new HashMap<Long, Long>();
         }
         return services;
     }

@@ -56,7 +56,7 @@ public class Application {
             createEncounter1.setTcn("tcn-1.1");
             createEncounter1.setPersonId("personId-1");
             createEncounter1.setEncounterId("encounterId-1");
-            createEncounter1.setAction("action-1");
+            createEncounter1.setAction(Runnable.class);
             useCaseManager.saveUseCase(createEncounter1);
             log.info("request-1: " + createEncounter1.toString());
             //
@@ -67,7 +67,7 @@ public class Application {
             createEncounter2.setEncounterId("encounterId-2.1");
             useCaseManager.saveUseCase(createEncounter2);
             createEncounter2.setTcn("tcn-2.2");
-            createEncounter2.setAction("action-2.2");
+            createEncounter2.setAction(Runnable.class);
             useCaseManager.saveUseCase(createEncounter2);
             log.info("request-2: " + createEncounter2.toString());
             //

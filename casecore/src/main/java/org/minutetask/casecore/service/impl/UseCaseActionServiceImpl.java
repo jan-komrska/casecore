@@ -22,7 +22,14 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.jpa.repository.UseCaseActionRepository;
@@ -65,6 +72,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Transactional
     public UseCaseActionEntity persistAction(UseCaseActionEntity action) {
         if (action.getId() == null) {
+            action.applyChanges();
             return useCaseActionRepository.save(action);
         } else {
             return action;
@@ -75,6 +83,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Transactional
     public UseCaseActionEntity saveAction(UseCaseActionEntity action) {
         if (action.getId() != null) {
+            action.applyChanges();
             return useCaseActionRepository.save(action);
         } else {
             return action;
@@ -94,35 +103,72 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     //
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Class<?> getActionServiceClass(UseCaseActionEntity action) {
-        // TODO Auto-generated method stub
-        return null;
+        Long serviceClassId = action.getUseCaseActionData().getServiceClassId();
+        return literalService.getClassFromId(serviceClassId);
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setActionServiceClass(UseCaseActionEntity action, Class<?> serviceClass) {
-        // TODO Auto-generated method stub
+        Long serviceClassId = literalService.getIdFromClass(serviceClass);
+        action.getUseCaseActionData().setServiceClassId(serviceClassId);
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Method getActionMethod(UseCaseActionEntity action) {
-        // TODO Auto-generated method stub
-        return null;
+        String methodName = action.getUseCaseActionData().getMethodName();
+        if (StringUtils.isNotEmpty(methodName)) {
+            Long methodClassId = action.getUseCaseActionData().getMethodClassId();
+            Class<?> methodClass = literalService.getClassFromId(methodClassId);
+            //
+            Class<?>[] parameterClasses = action.getUseCaseActionData().getParameterClassIds(). //
+                    stream().map(literalService::getClassFromId).toArray(Class<?>[]::new);
+            //
+            try {
+                return methodClass.getDeclaredMethod(methodName, parameterClasses);
+            } catch (NoSuchMethodException ex) {
+                throw new UnexpectedException(ex);
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setActionMethod(UseCaseActionEntity action, Method method) {
-        // TODO Auto-generated method stub
+        if (method != null) {
+            Long methodClassId = literalService.getIdFromClass(method.getDeclaringClass());
+            //
+            List<Long> parameterClassIds = Arrays.stream(ArrayUtils.nullToEmpty(method.getParameterTypes())) //
+                    .map(literalService::getIdFromClass).toList();
+            parameterClassIds = new ArrayList<Long>(parameterClassIds);
+            //
+            action.getUseCaseActionData().setMethodClassId(methodClassId);
+            action.getUseCaseActionData().setMethodName(method.getName());
+            action.getUseCaseActionData().setParameterClassIds(parameterClassIds);
+        } else {
+            action.getUseCaseActionData().setMethodClassId(null);
+            action.getUseCaseActionData().setMethodName(null);
+            action.getUseCaseActionData().setParameterClassIds(null);
+        }
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Object[] getActionArgs(UseCaseActionEntity action) {
-        // TODO Auto-generated method stub
-        return null;
+        return action.getUseCaseActionData().getParameters().toArray();
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setActionArgs(UseCaseActionEntity action, Object[] args) {
-        // TODO Auto-generated method stub
+        List<Object> parameters = new ArrayList<Object>();
+        CollectionUtils.addAll(parameters, ArrayUtils.nullToEmpty(args));
+        //
+        action.getUseCaseActionData().setParameters(parameters);
     }
 }

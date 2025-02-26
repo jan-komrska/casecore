@@ -115,13 +115,14 @@ public class UseCaseServiceImpl implements UseCaseService {
             }
             useCase.getUseCaseData().getKeys().putAll(keys);
             //
-            Map<Long, String> services = new HashMap<Long, String>();
+            Map<Long, Long> services = new HashMap<Long, Long>();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
                 Long contractClassId = literalService.getIdFromClass(contractClass);
-                String serviceName = (String) FieldUtils.readField(serviceField, data, true);
-                services.put(contractClassId, serviceName);
+                Class<?> serviceClass = (Class<?>) FieldUtils.readField(serviceField, data, true);
+                Long serviceClassId = literalService.getIdFromClass(serviceClass);
+                services.put(contractClassId, serviceClassId);
             }
             useCase.getUseCaseData().getServices().putAll(services);
         } catch (IllegalAccessException ex) {
@@ -220,13 +221,14 @@ public class UseCaseServiceImpl implements UseCaseService {
                 FieldUtils.writeField(keyField, data, keyValue, true);
             }
             //
-            Map<Long, String> services = useCase.getUseCaseData().getServices();
+            Map<Long, Long> services = useCase.getUseCaseData().getServices();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
                 Class<?> contractClass = serviceField.getAnnotation(ServiceRef.class).value();
                 Long contractClassId = literalService.getIdFromClass(contractClass);
-                String serviceName = services.get(contractClassId);
-                FieldUtils.writeField(serviceField, data, serviceName, true);
+                Long serviceClassId = services.get(contractClassId);
+                Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
+                FieldUtils.writeField(serviceField, data, serviceClass, true);
             }
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);

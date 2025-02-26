@@ -1,11 +1,8 @@
-package org.minutetask.tstapp;
-
-import org.minutetask.casecore.annotation.ClosedRef;
-import org.minutetask.casecore.annotation.IdRef;
+package org.minutetask.casecore.annotation;
 
 /*-
  * ========================LICENSE_START=================================
- * casecore-test-application
+ * org.minutetask.casecore:casecore
  * %%
  * Copyright (C) 2025 Jan Komrska
  * %%
@@ -23,30 +20,15 @@ import org.minutetask.casecore.annotation.IdRef;
  * =========================LICENSE_END==================================
  */
 
-import org.minutetask.casecore.annotation.KeyRef;
-import org.minutetask.casecore.annotation.ServiceRef;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.METHOD })
+public @interface MethodRef {
+    public boolean persist() default false;
 
-@Getter
-@Setter
-@ToString
-public class CreateEncounterCase {
-    @IdRef
-    private Long id;
-
-    @ClosedRef
-    private boolean closed;
-
-    private String personId;
-
-    private String encounterId;
-
-    @KeyRef("CreateEncounterCase::tcn")
-    private String tcn;
-
-    @ServiceRef(Runnable.class)
-    private Class<?> action;
+    public String async() default "";
 }
