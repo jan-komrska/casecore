@@ -30,11 +30,11 @@ public interface UseCaseActionService {
 
     public UseCaseActionEntity getAction(Long id);
 
-    public void persistAction(UseCaseActionEntity action);
+    public UseCaseActionEntity persistAction(UseCaseActionEntity action);
 
-    public void saveAction(UseCaseActionEntity action);
+    public UseCaseActionEntity saveAction(UseCaseActionEntity action);
 
-    public void deleteAction(UseCaseActionEntity action);
+    public UseCaseActionEntity deleteAction(UseCaseActionEntity action);
 
     //
 
