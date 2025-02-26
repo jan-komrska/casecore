@@ -31,7 +31,7 @@ public interface UseCaseService {
 
     public UseCaseEntity saveUseCase(UseCaseEntity useCase);
 
-    public void deleteUseCase(Long id);
+    public void deleteUseCaseById(Long id);
 
     //
 

@@ -274,7 +274,7 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     @Override
     @Transactional
-    public void deleteUseCase(Long id) {
+    public void deleteUseCaseById(Long id) {
         useCaseRepository.deleteById(id);
     }
 

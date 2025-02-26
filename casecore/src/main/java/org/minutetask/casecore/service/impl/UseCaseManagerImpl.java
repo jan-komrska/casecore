@@ -130,7 +130,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
     public <UseCase> UseCase deleteUseCase(UseCase useCase) {
         Long useCaseId = getUseCaseId(useCase);
         if (useCaseId != null) {
-            useCaseService.deleteUseCase(useCaseId);
+            useCaseService.deleteUseCaseById(useCaseId);
             setUseCaseId(useCase, null);
         }
         return useCase;
