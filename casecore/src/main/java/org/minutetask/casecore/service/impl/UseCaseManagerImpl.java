@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.exception.BadRequestException;
@@ -88,18 +87,14 @@ public class UseCaseManagerImpl implements UseCaseManager {
     //
 
     @Override
-    public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass) {
+    public <UseCase> UseCase getUseCase(Object idValue, Class<UseCase> useCaseClass) {
+        Long id = objectMapper.convertValue(idValue, Long.class);
         UseCaseEntity useCaseEntity = useCaseService.getUseCase(id);
         if (useCaseEntity != null) {
             return useCaseService.getUseCaseData(useCaseEntity, useCaseClass);
         } else {
             throw new NotFoundException();
         }
-    }
-
-    @Override
-    public <UseCase> UseCase getUseCase(ActionContext actionContext, Class<UseCase> useCaseClass) {
-        return getUseCase(actionContext.getUseCaseId(), useCaseClass);
     }
 
     @Override
@@ -132,7 +127,8 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     @Transactional
-    public void deleteUseCase(Long id) {
+    public void deleteUseCase(Object idValue) {
+        Long id = objectMapper.convertValue(idValue, Long.class);
         useCaseService.deleteUseCase(id);
     }
 }

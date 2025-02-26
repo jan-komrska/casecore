@@ -21,13 +21,11 @@ package org.minutetask.casecore;
  */
 
 public interface UseCaseManager {
-    public <UseCase> UseCase getUseCase(Long id, Class<UseCase> useCaseClass);
-
-    public <UseCase> UseCase getUseCase(ActionContext actionContext, Class<UseCase> useCaseClass);
+    public <UseCase> UseCase getUseCase(Object id, Class<UseCase> useCaseClass);
 
     public <UseCase> UseCase getUseCase(String keyType, String keyValue, Class<UseCase> useCaseClass);
 
     public <UseCase> UseCase saveUseCase(UseCase useCase);
 
-    public void deleteUseCase(Long id);
+    public void deleteUseCase(Object id);
 }
