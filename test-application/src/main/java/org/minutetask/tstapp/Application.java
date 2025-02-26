@@ -87,7 +87,7 @@ public class Application {
             createEncounter4.setPersonId("personId-4.1");
             createEncounter4.setEncounterId("encounterId-4.1");
             useCaseManager.saveUseCase(createEncounter4);
-            useCaseManager.deleteUseCase(createEncounter4.getId());
+            useCaseManager.deleteUseCase(createEncounter4);
             log.info("request-4: " + createEncounter4.toString());
             //
             System.out.println("OK");

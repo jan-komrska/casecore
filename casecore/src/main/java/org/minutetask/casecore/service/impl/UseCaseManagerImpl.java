@@ -127,8 +127,10 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     @Transactional
-    public void deleteUseCase(Object idValue) {
-        Long id = objectMapper.convertValue(idValue, Long.class);
-        useCaseService.deleteUseCase(id);
+    public <UseCase> void deleteUseCase(UseCase useCase) {
+        Long useCaseId = getUseCaseId(useCase);
+        if (useCaseId != null) {
+            useCaseService.deleteUseCase(useCaseId);
+        }
     }
 }
