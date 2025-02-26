@@ -27,5 +27,5 @@ public interface UseCaseManager {
 
     public <UseCase> UseCase saveUseCase(UseCase useCase);
 
-    public <UseCase> void deleteUseCase(UseCase useCase);
+    public <UseCase> UseCase deleteUseCase(UseCase useCase);
 }

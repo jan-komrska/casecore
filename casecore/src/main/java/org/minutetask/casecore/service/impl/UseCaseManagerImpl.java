@@ -127,10 +127,12 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @Override
     @Transactional
-    public <UseCase> void deleteUseCase(UseCase useCase) {
+    public <UseCase> UseCase deleteUseCase(UseCase useCase) {
         Long useCaseId = getUseCaseId(useCase);
         if (useCaseId != null) {
             useCaseService.deleteUseCase(useCaseId);
+            setUseCaseId(useCase, null);
         }
+        return useCase;
     }
 }
