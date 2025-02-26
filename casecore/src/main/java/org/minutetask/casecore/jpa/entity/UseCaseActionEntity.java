@@ -72,10 +72,6 @@ public class UseCaseActionEntity {
     @JoinColumn(name = "usecase_id", nullable = false)
     private UseCaseEntity useCase = null;
 
-    @Column(name = "method_id", nullable = false)
-    @ToString.Include
-    private Long methodId;
-
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Lob
