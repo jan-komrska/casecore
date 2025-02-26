@@ -30,9 +30,11 @@ public interface UseCaseActionService {
 
     public UseCaseActionEntity getAction(Long id);
 
+    public void persistAction(UseCaseActionEntity action);
+
     public void saveAction(UseCaseActionEntity action);
 
-    public void deleteAction(Long id);
+    public void deleteAction(UseCaseActionEntity action);
 
     //
 
