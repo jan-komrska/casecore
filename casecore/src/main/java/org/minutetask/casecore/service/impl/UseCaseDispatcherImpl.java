@@ -23,12 +23,10 @@ package org.minutetask.casecore.service.impl;
 import java.lang.reflect.Method;
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang3.StringUtils;
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -38,11 +36,13 @@ import org.springframework.stereotype.Service;
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Autowired
-    private ApplicationContext applicationContext;
+    private AsyncTaskExecutorProvider asyncTaskExecutorProvider;
 
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
+
+    //
 
     public Object invokeImpl(Method method, Object[] args) throws Throwable {
         return null;
@@ -50,17 +50,12 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(Method method, Object[] args) throws Throwable {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /*
-    @Override
-    public Object invoke(Method method, Object[] args) throws Throwable {
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        String executorName = null; // (methodRef != null) ? methodRef.async() : null;
-        if (StringUtils.isNotEmpty(executorName)) {
-            AsyncTaskExecutor asyncTaskExecutor = applicationContext.getBean(executorName, AsyncTaskExecutor.class);
+        boolean async = (methodRef != null) ? methodRef.async() : false;
+        String taskExecutor = (methodRef != null) ? methodRef.taskExecutor() : "";
+        //
+        if (async) {
+            AsyncTaskExecutor asyncTaskExecutor = asyncTaskExecutorProvider.getAsyncTaskExecutor(taskExecutor);
             return asyncTaskExecutor.submitCompletable(() -> {
                 try {
                     Object result = self.invokeImpl(method, args);
@@ -79,5 +74,4 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             return self.invokeImpl(method, args);
         }
     }
-    */
 }
