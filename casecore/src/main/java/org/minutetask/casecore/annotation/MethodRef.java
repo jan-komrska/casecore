@@ -28,7 +28,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
 public @interface MethodRef {
-    public boolean persist() default false;
+    public boolean inline() default false;
 
-    public String async() default "";
+    public boolean persistent() default false;
+
+    public boolean async() default false;
+
+    public String taskExecutor() default "";
 }

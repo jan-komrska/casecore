@@ -50,8 +50,15 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(Method method, Object[] args) throws Throwable {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+    @Override
+    public Object invoke(Method method, Object[] args) throws Throwable {
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        String executorName = (methodRef != null) ? methodRef.async() : null;
+        String executorName = null; // (methodRef != null) ? methodRef.async() : null;
         if (StringUtils.isNotEmpty(executorName)) {
             AsyncTaskExecutor asyncTaskExecutor = applicationContext.getBean(executorName, AsyncTaskExecutor.class);
             return asyncTaskExecutor.submitCompletable(() -> {
@@ -72,4 +79,5 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             return self.invokeImpl(method, args);
         }
     }
+    */
 }
