@@ -21,7 +21,6 @@ package org.minutetask.casecore.service.impl;
  */
 
 import java.lang.reflect.Method;
-import java.util.concurrent.Future;
 
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
@@ -29,14 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Autowired
-    private AsyncTaskExecutorProvider asyncTaskExecutorProvider;
+    private TaskToolkit taskToolkit;
 
     @Lazy
     @Autowired
@@ -44,7 +42,7 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     //
 
-    public Object invokeImpl(Method method, Object[] args) throws Throwable {
+    public Object invokeImpl(Method method, Object[] args) throws Exception {
         return null;
     }
 
@@ -55,20 +53,8 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         String taskExecutor = (methodRef != null) ? methodRef.taskExecutor() : "";
         //
         if (async) {
-            AsyncTaskExecutor asyncTaskExecutor = asyncTaskExecutorProvider.getAsyncTaskExecutor(taskExecutor);
-            return asyncTaskExecutor.submitCompletable(() -> {
-                try {
-                    Object result = self.invokeImpl(method, args);
-                    if (result instanceof Future<?> future) {
-                        return future.get();
-                    } else {
-                        return result;
-                    }
-                } catch (Exception ex) {
-                    throw ex;
-                } catch (Throwable ex) {
-                    throw new IllegalStateException(ex);
-                }
+            return taskToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
+                return self.invokeImpl(method, args);
             });
         } else {
             return self.invokeImpl(method, args);

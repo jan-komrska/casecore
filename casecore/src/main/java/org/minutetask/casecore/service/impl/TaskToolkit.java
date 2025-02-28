@@ -20,8 +20,15 @@ package org.minutetask.casecore.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.minutetask.casecore.exception.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -29,10 +36,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import lombok.extern.java.Log;
+
+@Log
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
-public class AsyncTaskExecutorProvider {
+public class TaskToolkit {
     private static final String DEFAULT_TASK_EXECUTOR = "taskExecutor";
 
     private volatile String defaultExecutorName = null;
@@ -43,7 +54,7 @@ public class AsyncTaskExecutorProvider {
 
     //
 
-    public AsyncTaskExecutor getAsyncTaskExecutor(String executorName) {
+    private AsyncTaskExecutor getAsyncTaskExecutor(String executorName) {
         if (StringUtils.isNotEmpty(executorName)) {
             return applicationContext.getBean(executorName, AsyncTaskExecutor.class);
         } else if (StringUtils.isNotEmpty(defaultExecutorName)) {
@@ -67,6 +78,39 @@ public class AsyncTaskExecutorProvider {
             }
             //
             return getAsyncTaskExecutor(executorName);
+        }
+    }
+
+    public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
+        AsyncTaskExecutor proxyExecutor = getAsyncTaskExecutor(executorName);
+        Callable<Object> proxyCallable = () -> {
+            Object result = callable.call();
+            //
+            if (result instanceof Future<?> future) {
+                try {
+                    return future.get();
+                } catch (ExecutionException ex) {
+                    if (resultClass.isAssignableFrom(Void.class)) {
+                        log.log(Level.SEVERE, "Unexpected exception:", ex.getCause());
+                    }
+                    ReflectionUtils.rethrowException(ex.getCause());
+                }
+            }
+            //
+            return null;
+        };
+        //
+        if (resultClass.isAssignableFrom(CompletableFuture.class)) {
+            Object proxyResult = proxyExecutor.submitCompletable(proxyCallable);
+            return resultClass.cast(proxyResult);
+        } else if (resultClass.isAssignableFrom(Future.class)) {
+            Object proxyResult = proxyExecutor.submit(proxyCallable);
+            return resultClass.cast(proxyResult);
+        } else if (resultClass.isAssignableFrom(Void.class)) {
+            proxyExecutor.submit(proxyCallable);
+            return null;
+        } else {
+            throw new BadRequestException();
         }
     }
 }
