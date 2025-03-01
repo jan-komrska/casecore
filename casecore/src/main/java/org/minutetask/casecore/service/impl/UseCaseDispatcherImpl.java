@@ -22,9 +22,13 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 
-import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.MethodRef;
+import org.minutetask.casecore.exception.BadRequestException;
+import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import org.minutetask.casecore.service.api.LiteralService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
+import org.minutetask.casecore.service.api.UseCaseService;
+import org.minutetask.casecore.service.impl.UseCaseToolkit.KeyDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
@@ -39,18 +43,36 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     private UseCaseDispatcherImpl self;
 
     @Autowired
-    private UseCaseManager useCaseManager;
+    private UseCaseService useCaseService;
 
     @Autowired
     private UseCaseToolkit useCaseToolkit;
+
+    @Autowired
+    private LiteralService literalService;
 
     //
 
     public Object invokeImpl(Method method, Object[] args) throws Exception {
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
         boolean persistentMethod = (methodRef != null) ? methodRef.persistent() : false;
+        Long useCaseId = useCaseToolkit.getUseCaseId(method, args);
+        KeyDto useCaseKey = useCaseToolkit.getUseCaseKey(method, args);
         //
-        return useCaseToolkit.executeService(null, method, args);
+        UseCaseEntity useCase;
+        if (useCaseId != null) {
+            useCase = useCaseService.getUseCase(useCaseId);
+        } else if (useCaseKey != null) {
+            useCase = useCaseService.getUseCase(useCaseKey.getType(), useCaseKey.getValue());
+        } else {
+            throw new BadRequestException();
+        }
+        //
+        Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
+        Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
+        Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
+        //
+        return useCaseToolkit.executeService(serviceClass, method, args);
     }
 
     @Override
