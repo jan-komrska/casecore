@@ -61,7 +61,7 @@ public class UseCaseToolkit {
 
     //
 
-    public static <Result> Result rethrowException(Throwable throwable) throws Exception {
+    private <Result> Result rethrowException(Throwable throwable) throws Exception {
         if (throwable instanceof Exception exception) {
             throw exception;
         } else if (throwable instanceof Error error) {
@@ -70,8 +70,6 @@ public class UseCaseToolkit {
             throw new UndeclaredThrowableException(throwable);
         }
     }
-
-    //
 
     private AsyncTaskExecutor getAsyncTaskExecutor(String executorName) {
         if (StringUtils.isNotEmpty(executorName)) {
@@ -99,6 +97,8 @@ public class UseCaseToolkit {
             return getAsyncTaskExecutor(executorName);
         }
     }
+
+    //
 
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
         AsyncTaskExecutor proxyExecutor = getAsyncTaskExecutor(executorName);
@@ -132,8 +132,6 @@ public class UseCaseToolkit {
             throw new BadRequestException();
         }
     }
-
-    //
 
     public Object executeService(Class<?> serviceClass, Method method, Object[] args) throws Exception {
         Object service;

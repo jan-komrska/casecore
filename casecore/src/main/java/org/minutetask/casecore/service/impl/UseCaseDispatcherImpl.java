@@ -22,6 +22,7 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 
+import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,27 +34,32 @@ import org.springframework.stereotype.Service;
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseDispatcherImpl implements UseCaseDispatcher {
-    @Autowired
-    private UseCaseToolkit useCaseToolkit;
-
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
 
+    @Autowired
+    private UseCaseManager useCaseManager;
+
+    @Autowired
+    private UseCaseToolkit useCaseToolkit;
+
     //
 
     public Object invokeImpl(Method method, Object[] args) throws Exception {
-        // TODO
+        MethodRef methodRef = method.getAnnotation(MethodRef.class);
+        boolean persistentMethod = (methodRef != null) ? methodRef.persistent() : false;
+        //
         return useCaseToolkit.executeService(null, method, args);
     }
 
     @Override
     public Object invoke(Method method, Object[] args) throws Exception {
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        boolean async = (methodRef != null) ? methodRef.async() : false;
+        boolean asyncMethod = (methodRef != null) ? methodRef.async() : false;
         String taskExecutor = (methodRef != null) ? methodRef.taskExecutor() : "";
         //
-        if (async) {
+        if (asyncMethod) {
             return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
                 return self.invokeImpl(method, args);
             });
