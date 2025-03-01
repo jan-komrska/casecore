@@ -20,6 +20,7 @@ package org.minutetask.casecore.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -32,12 +33,15 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
+import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.exception.NotFoundException;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -45,6 +49,11 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.java.Log;
 
 @Log
@@ -55,6 +64,10 @@ public class UseCaseToolkit {
 
     private volatile String defaultExecutorName = null;
     private volatile SimpleAsyncTaskExecutor internalExecutor = null;
+
+    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -99,6 +112,44 @@ public class UseCaseToolkit {
     }
 
     //
+
+    @Getter
+    @AllArgsConstructor
+    @ToString
+    public static class KeyDto {
+        private String type;
+        private String value;
+    }
+
+    public Long getUseCaseId(Method method, Object[] args) {
+        AnnotatedType[] parameterTypes = method.getAnnotatedParameterTypes();
+        parameterTypes = ArrayUtils.nullToEmpty(parameterTypes, AnnotatedType[].class);
+        //
+        for (int index = 0; index < parameterTypes.length; index++) {
+            AnnotatedType parameterType = parameterTypes[index];
+            if (parameterType.isAnnotationPresent(IdRef.class)) {
+                return objectMapper.convertValue(args[index], Long.class);
+            }
+        }
+        //
+        return null;
+    }
+
+    public KeyDto getUseCaseKey(Method method, Object[] args) {
+        AnnotatedType[] parameterTypes = method.getAnnotatedParameterTypes();
+        parameterTypes = ArrayUtils.nullToEmpty(parameterTypes, AnnotatedType[].class);
+        //
+        for (int index = 0; index < parameterTypes.length; index++) {
+            AnnotatedType parameterType = parameterTypes[index];
+            if (parameterType.isAnnotationPresent(KeyRef.class)) {
+                String type = parameterType.getAnnotation(KeyRef.class).value();
+                String value = objectMapper.convertValue(args[index], String.class);
+                return new KeyDto(type, value);
+            }
+        }
+        //
+        return null;
+    }
 
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
         AsyncTaskExecutor proxyExecutor = getAsyncTaskExecutor(executorName);
