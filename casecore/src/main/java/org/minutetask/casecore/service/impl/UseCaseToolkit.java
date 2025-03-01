@@ -1,8 +1,5 @@
 package org.minutetask.casecore.service.impl;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -23,6 +20,9 @@ import java.lang.reflect.Method;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -44,7 +44,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
 import lombok.extern.java.Log;
 
@@ -59,6 +58,18 @@ public class UseCaseToolkit {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    //
+
+    public static <Result> Result rethrowException(Throwable throwable) throws Exception {
+        if (throwable instanceof Exception exception) {
+            throw exception;
+        } else if (throwable instanceof Error error) {
+            throw error;
+        } else {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
 
     //
 
@@ -101,7 +112,7 @@ public class UseCaseToolkit {
                     if (resultClass.isAssignableFrom(Void.class)) {
                         log.log(Level.SEVERE, "Unexpected exception:", ex.getCause());
                     }
-                    ReflectionUtils.rethrowException(ex.getCause());
+                    return rethrowException(ex.getCause());
                 }
             }
             //
@@ -139,8 +150,7 @@ public class UseCaseToolkit {
         } catch (IllegalAccessException ex) {
             throw new UnexpectedException(ex);
         } catch (InvocationTargetException ex) {
-            ReflectionUtils.rethrowException(ex.getCause());
-            return null;
+            return rethrowException(ex.getCause());
         }
     }
 }
