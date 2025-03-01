@@ -1,5 +1,8 @@
 package org.minutetask.casecore.service.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /*-
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
@@ -28,7 +31,12 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
 import org.minutetask.casecore.exception.BadRequestException;
+import org.minutetask.casecore.exception.ConflictException;
+import org.minutetask.casecore.exception.NotFoundException;
+import org.minutetask.casecore.exception.UnexpectedException;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -43,7 +51,7 @@ import lombok.extern.java.Log;
 @Log
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
-public class TaskToolkit {
+public class UseCaseToolkit {
     private static final String DEFAULT_TASK_EXECUTOR = "taskExecutor";
 
     private volatile String defaultExecutorName = null;
@@ -111,6 +119,28 @@ public class TaskToolkit {
             return null;
         } else {
             throw new BadRequestException();
+        }
+    }
+
+    //
+
+    public Object executeService(Class<?> serviceClass, Method method, Object[] args) throws Exception {
+        Object service;
+        try {
+            service = applicationContext.getBean(serviceClass);
+        } catch (NoSuchBeanException ex) {
+            throw new NotFoundException(ex);
+        } catch (NoUniqueBeanDefinitionException ex) {
+            throw new ConflictException(ex);
+        }
+        //
+        try {
+            return method.invoke(service, args);
+        } catch (IllegalAccessException ex) {
+            throw new UnexpectedException(ex);
+        } catch (InvocationTargetException ex) {
+            ReflectionUtils.rethrowException(ex.getCause());
+            return null;
         }
     }
 }

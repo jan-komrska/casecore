@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Autowired
-    private TaskToolkit taskToolkit;
+    private UseCaseToolkit useCaseToolkit;
 
     @Lazy
     @Autowired
@@ -43,17 +43,18 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     //
 
     public Object invokeImpl(Method method, Object[] args) throws Exception {
-        return null;
+        // TODO
+        return useCaseToolkit.executeService(null, method, args);
     }
 
     @Override
-    public Object invoke(Method method, Object[] args) throws Throwable {
+    public Object invoke(Method method, Object[] args) throws Exception {
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
         boolean async = (methodRef != null) ? methodRef.async() : false;
         String taskExecutor = (methodRef != null) ? methodRef.taskExecutor() : "";
         //
         if (async) {
-            return taskToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
+            return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
                 return self.invokeImpl(method, args);
             });
         } else {
