@@ -25,7 +25,7 @@ import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 
 @ContractRef
-public interface DocumentContract {
+public interface DocumentFlow {
     public void run(@IdRef Long id);
 
     public void pageUploaded(@KeyRef("DocumentCaseApi::pageUrl") String pageUrl);

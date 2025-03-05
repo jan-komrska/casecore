@@ -47,6 +47,6 @@ public class DocumentCase {
     @KeyRef("DocumentCaseApi::notificationId")
     private Long notificationId;
 
-    @ServiceRef(DocumentContract.class)
-    private Class<? extends DocumentContract> contract;
+    @ServiceRef(DocumentFlow.class)
+    private Class<? extends DocumentFlow> flow;
 }

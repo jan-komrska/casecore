@@ -1,7 +1,5 @@
 package org.minutetask.tstapp;
 
-import org.minutetask.casecore.CaseCoreScan;
-
 /*-
  * ========================LICENSE_START=================================
  * casecore-test-application
@@ -22,11 +20,12 @@ import org.minutetask.casecore.CaseCoreScan;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.CaseCoreScan;
 import org.minutetask.casecore.CoreCaseConfiguration;
 import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.tstapp.simple.DocumentCase;
-import org.minutetask.tstapp.simple.DocumentContract;
-import org.minutetask.tstapp.simple.PublishDocumentImpl;
+import org.minutetask.tstapp.simple.DocumentFlow;
+import org.minutetask.tstapp.simple.PublishDocumentFlow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -51,7 +50,7 @@ public class Application {
     private UseCaseManager useCaseManager = null;
 
     @Autowired
-    private DocumentContract documentContract = null;
+    private DocumentFlow documentContract = null;
 
     @Bean
     public CommandLineRunner commandLineRunner() {
@@ -60,7 +59,7 @@ public class Application {
             //
             DocumentCase documentCase = new DocumentCase();
             documentCase.setDocumentId("document-1");
-            documentCase.setContract(PublishDocumentImpl.class);
+            documentCase.setFlow(PublishDocumentFlow.class);
             documentCase = useCaseManager.saveUseCase(documentCase);
             log.info("document case: {}", documentCase.toString());
             //
