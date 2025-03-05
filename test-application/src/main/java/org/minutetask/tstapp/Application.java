@@ -24,6 +24,9 @@ import org.minutetask.casecore.CaseCoreScan;
 
 import org.minutetask.casecore.CoreCaseConfiguration;
 import org.minutetask.casecore.UseCaseManager;
+import org.minutetask.tstapp.simple.DocumentCase;
+import org.minutetask.tstapp.simple.DocumentContract;
+import org.minutetask.tstapp.simple.PublishDocumentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -48,56 +51,27 @@ public class Application {
     private UseCaseManager useCaseManager = null;
 
     @Autowired
-    private CaseContract caseContract = null;
+    private DocumentContract documentContract = null;
 
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
-            System.out.println("Let's start flow:");
+            log.info("Let's start flow:");
             //
-            CreateEncounterCase createEncounter1 = new CreateEncounterCase();
-            createEncounter1.setTcn("tcn-1.1");
-            createEncounter1.setPersonId("personId-1");
-            createEncounter1.setEncounterId("encounterId-1");
-            createEncounter1.setContract(CreateEncounterImpl.class);
-            useCaseManager.saveUseCase(createEncounter1);
+            DocumentCase documentCase = new DocumentCase();
+            documentCase.setDocumentId("document-1");
+            documentCase.setContract(PublishDocumentImpl.class);
+            documentCase = useCaseManager.saveUseCase(documentCase);
+            log.info("document case: {}", documentCase.toString());
             //
-            caseContract.executeService(createEncounter1.getId(), "Hello world!");
-            log.info("request-1: " + createEncounter1.toString());
+            documentContract.run(documentCase.getCaseId());
             //
-            CreateEncounterCase createEncounter2 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
-            createEncounter2.setId(null);
-            createEncounter2.setTcn("tcn-2.1");
-            createEncounter2.setPersonId("personId-2.1");
-            createEncounter2.setEncounterId("encounterId-2.1");
-            useCaseManager.saveUseCase(createEncounter2);
-            createEncounter2.setTcn("tcn-2.2");
-            createEncounter2.setContract(CreateEncounterImpl.class);
-            useCaseManager.saveUseCase(createEncounter2);
+            documentCase = useCaseManager.refreshUseCase(documentCase);
+            log.info("document case: {}", documentCase.toString());
             //
-            caseContract.executeService(createEncounter1.getId(), "Hello world! - 2");
-            log.info("request-2: " + createEncounter2.toString());
+            documentContract.pageUploaded(documentCase.getPageUrl());
             //
-            CreateEncounterCase createEncounter3 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
-            createEncounter3.setId(null);
-            createEncounter3.setClosed(true);
-            createEncounter3.setTcn("tcn-3.1");
-            createEncounter3.setPersonId("personId-3.1");
-            createEncounter3.setEncounterId("encounterId-3.1");
-            useCaseManager.saveUseCase(createEncounter3);
-            log.info("request-3: " + createEncounter3.toString());
-            //
-            CreateEncounterCase createEncounter4 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
-            createEncounter4.setId(null);
-            createEncounter4.setTcn(null);
-            createEncounter4.setClosed(true);
-            createEncounter4.setPersonId("personId-4.1");
-            createEncounter4.setEncounterId("encounterId-4.1");
-            useCaseManager.saveUseCase(createEncounter4);
-            useCaseManager.deleteUseCase(createEncounter4);
-            log.info("request-4: " + createEncounter4.toString());
-            //
-            System.out.println("OK");
+            log.info("OK");
         };
     }
 }

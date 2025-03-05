@@ -107,6 +107,18 @@ public class UseCaseManagerImpl implements UseCaseManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <UseCase> UseCase refreshUseCase(UseCase useCase) {
+        Long useCaseId = getUseCaseId(useCase);
+        UseCaseEntity useCaseEntity = (useCaseId != null) ? useCaseService.getUseCase(useCaseId) : null;
+        if (useCaseEntity != null) {
+            return (UseCase) useCaseService.getUseCaseData(useCaseEntity, useCase.getClass());
+        } else {
+            throw new NotFoundException();
+        }
+    }
+
     @Override
     @Transactional
     public <UseCase> UseCase saveUseCase(UseCase useCase) {

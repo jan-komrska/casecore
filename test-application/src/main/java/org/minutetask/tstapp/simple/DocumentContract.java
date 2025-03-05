@@ -1,4 +1,4 @@
-package org.minutetask.tstapp;
+package org.minutetask.tstapp.simple;
 
 /*-
  * ========================LICENSE_START=================================
@@ -22,8 +22,13 @@ package org.minutetask.tstapp;
 
 import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.KeyRef;
 
 @ContractRef
-public interface CaseContract {
-    public void executeService(@IdRef Long id, String text);
+public interface DocumentContract {
+    public void run(@IdRef Long id);
+
+    public void pageUploaded(@KeyRef("DocumentCaseApi::pageUrl") String pageUrl);
+
+    public void notificationDelivered(@KeyRef("DocumentCaseApi::notificationId") Long notificationId);
 }

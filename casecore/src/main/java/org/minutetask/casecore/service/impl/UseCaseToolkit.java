@@ -32,6 +32,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
@@ -140,6 +141,29 @@ public class UseCaseToolkit {
         return null;
     }
 
+    public void setUseCaseId(Method method, Object[] args, Long id) {
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        parameterAnnotations = ArrayUtils.nullToEmpty(parameterAnnotations, Annotation[][].class);
+        //
+        for (int pindex = 0; pindex < parameterAnnotations.length; pindex++) {
+            Annotation[] annotations = parameterAnnotations[pindex];
+            annotations = ArrayUtils.nullToEmpty(annotations, Annotation[].class);
+            //
+            for (int aindex = 0; aindex < annotations.length; aindex++) {
+                Annotation annotation = annotations[aindex];
+                if (annotation instanceof IdRef) {
+                    Class<?> parameterType = method.getParameterTypes()[pindex];
+                    args[pindex] = objectMapper.convertValue(id, parameterType);
+                }
+            }
+        }
+    }
+
+    public Method getImplementationMethod(Class<?> serviceClass, Method method) {
+        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
+        return MethodUtils.getMatchingMethod(serviceClass, method.getName(), parameterTypes);
+    }
+
     public KeyDto getUseCaseKey(Method method, Object[] args) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         parameterAnnotations = ArrayUtils.nullToEmpty(parameterAnnotations, Annotation[][].class);
@@ -153,7 +177,11 @@ public class UseCaseToolkit {
                 if (annotation instanceof KeyRef keyRef) {
                     String type = keyRef.value();
                     String value = objectMapper.convertValue(args[pindex], String.class);
-                    return new KeyDto(type, value);
+                    if (StringUtils.isNotEmpty(value)) {
+                        return new KeyDto(type, value);
+                    } else {
+                        return null;
+                    }
                 }
             }
         }

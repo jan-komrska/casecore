@@ -1,7 +1,4 @@
-package org.minutetask.tstapp;
-
-import org.minutetask.casecore.annotation.ClosedRef;
-import org.minutetask.casecore.annotation.IdRef;
+package org.minutetask.tstapp.simple;
 
 /*-
  * ========================LICENSE_START=================================
@@ -23,6 +20,8 @@ import org.minutetask.casecore.annotation.IdRef;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.annotation.ClosedRef;
+import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.annotation.ServiceRef;
 
@@ -33,20 +32,21 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class CreateEncounterCase {
+public class DocumentCase {
     @IdRef
-    private Long id;
+    private Long caseId;
 
     @ClosedRef
     private boolean closed;
 
-    private String personId;
+    private String documentId;
 
-    private String encounterId;
+    @KeyRef("DocumentCaseApi::pageUrl")
+    private String pageUrl;
 
-    @KeyRef("CreateEncounterCase::tcn")
-    private String tcn;
+    @KeyRef("DocumentCaseApi::notificationId")
+    private Long notificationId;
 
-    @ServiceRef(CaseContract.class)
-    private Class<? extends CaseContract> contract;
+    @ServiceRef(DocumentContract.class)
+    private Class<? extends DocumentContract> contract;
 }

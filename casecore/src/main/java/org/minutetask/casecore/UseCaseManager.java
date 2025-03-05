@@ -25,6 +25,8 @@ public interface UseCaseManager {
 
     public <UseCase> UseCase getUseCase(String keyType, String keyValue, Class<UseCase> useCaseClass);
 
+    public <UseCase> UseCase refreshUseCase(UseCase useCase);
+
     public <UseCase> UseCase saveUseCase(UseCase useCase);
 
     public <UseCase> UseCase deleteUseCase(UseCase useCase);
