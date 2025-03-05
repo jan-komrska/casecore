@@ -24,8 +24,10 @@ import java.lang.reflect.Method;
 
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.BadRequestException;
+import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.service.api.LiteralService;
+import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.minutetask.casecore.service.api.UseCaseService;
 import org.minutetask.casecore.service.impl.UseCaseToolkit.KeyDto;
@@ -44,6 +46,9 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Autowired
     private UseCaseService useCaseService;
+
+    @Autowired
+    private UseCaseActionService useCaseActionService;
 
     @Autowired
     private UseCaseToolkit useCaseToolkit;
@@ -72,7 +77,21 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
         Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
         //
-        return useCaseToolkit.executeService(serviceClass, method, args);
+        UseCaseActionEntity useCaseAction = useCaseActionService.newAction(useCase);
+        useCaseActionService.setActionServiceClass(useCaseAction, serviceClass);
+        useCaseActionService.setActionMethod(useCaseAction, method);
+        useCaseActionService.setActionArgs(useCaseAction, args);
+        if (persistentMethod) {
+            useCaseAction = useCaseActionService.persistAction(useCaseAction);
+        }
+        //
+        Object result = useCaseToolkit.executeService(serviceClass, method, args);
+        //
+        if (persistentMethod) {
+            useCaseAction.setClosed(true);
+            useCaseAction = useCaseActionService.saveAction(useCaseAction);
+        }
+        return result;
     }
 
     @Override
