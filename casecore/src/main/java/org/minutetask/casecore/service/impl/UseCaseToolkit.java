@@ -122,11 +122,11 @@ public class UseCaseToolkit {
     }
 
     public Long getUseCaseId(Method method, Object[] args) {
-        Annotation[][] parameters = method.getParameterAnnotations();
-        parameters = ArrayUtils.nullToEmpty(parameters, Annotation[][].class);
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        parameterAnnotations = ArrayUtils.nullToEmpty(parameterAnnotations, Annotation[][].class);
         //
-        for (int pindex = 0; pindex < parameters.length; pindex++) {
-            Annotation[] annotations = parameters[pindex];
+        for (int pindex = 0; pindex < parameterAnnotations.length; pindex++) {
+            Annotation[] annotations = parameterAnnotations[pindex];
             annotations = ArrayUtils.nullToEmpty(annotations, Annotation[].class);
             //
             for (int aindex = 0; aindex < annotations.length; aindex++) {
@@ -141,11 +141,11 @@ public class UseCaseToolkit {
     }
 
     public KeyDto getUseCaseKey(Method method, Object[] args) {
-        Annotation[][] parameters = method.getParameterAnnotations();
-        parameters = ArrayUtils.nullToEmpty(parameters, Annotation[][].class);
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        parameterAnnotations = ArrayUtils.nullToEmpty(parameterAnnotations, Annotation[][].class);
         //
-        for (int pindex = 0; pindex < parameters.length; pindex++) {
-            Annotation[] annotations = parameters[pindex];
+        for (int pindex = 0; pindex < parameterAnnotations.length; pindex++) {
+            Annotation[] annotations = parameterAnnotations[pindex];
             annotations = ArrayUtils.nullToEmpty(annotations, Annotation[].class);
             //
             for (int aindex = 0; aindex < annotations.length; aindex++) {
