@@ -20,10 +20,15 @@ package org.minutetask.tstapp;
  * =========================LICENSE_END==================================
  */
 
-import org.minutetask.casecore.annotation.ContractRef;
-import org.minutetask.casecore.annotation.IdRef;
+import org.springframework.stereotype.Service;
 
-@ContractRef
-public interface CaseContract {
-    public void executeService(@IdRef Long id, String text);
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class CreateEncounterImpl implements CaseContract {
+    @Override
+    public void executeService(Long id, String text) {
+        log.info(text);
+    }
 }

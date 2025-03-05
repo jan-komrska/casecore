@@ -47,6 +47,6 @@ public class CreateEncounterCase {
     @KeyRef("CreateEncounterCase::tcn")
     private String tcn;
 
-    @ServiceRef(Runnable.class)
-    private Class<?> action;
+    @ServiceRef(CaseContract.class)
+    private Class<? extends CaseContract> contract;
 }

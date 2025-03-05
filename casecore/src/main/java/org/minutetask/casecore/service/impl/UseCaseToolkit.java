@@ -1,26 +1,6 @@
 package org.minutetask.casecore.service.impl;
 
-/*-
- * ========================LICENSE_START=================================
- * org.minutetask.casecore:casecore
- * %%
- * Copyright (C) 2025 Jan Komrska
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =========================LICENSE_END==================================
- */
-
-import java.lang.reflect.AnnotatedType;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -122,13 +102,18 @@ public class UseCaseToolkit {
     }
 
     public Long getUseCaseId(Method method, Object[] args) {
-        AnnotatedType[] parameterTypes = method.getAnnotatedParameterTypes();
-        parameterTypes = ArrayUtils.nullToEmpty(parameterTypes, AnnotatedType[].class);
+        Annotation[][] parameters = method.getParameterAnnotations();
+        parameters = ArrayUtils.nullToEmpty(parameters, Annotation[][].class);
         //
-        for (int index = 0; index < parameterTypes.length; index++) {
-            AnnotatedType parameterType = parameterTypes[index];
-            if (parameterType.isAnnotationPresent(IdRef.class)) {
-                return objectMapper.convertValue(args[index], Long.class);
+        for (int pindex = 0; pindex < parameters.length; pindex++) {
+            Annotation[] parameter = parameters[pindex];
+            parameter = ArrayUtils.nullToEmpty(parameter, Annotation[].class);
+            //
+            for (int aindex = 0; aindex < parameters.length; aindex++) {
+                Annotation annotation = parameter[aindex];
+                if (annotation instanceof IdRef) {
+                    return objectMapper.convertValue(args[pindex], Long.class);
+                }
             }
         }
         //
@@ -136,15 +121,20 @@ public class UseCaseToolkit {
     }
 
     public KeyDto getUseCaseKey(Method method, Object[] args) {
-        AnnotatedType[] parameterTypes = method.getAnnotatedParameterTypes();
-        parameterTypes = ArrayUtils.nullToEmpty(parameterTypes, AnnotatedType[].class);
+        Annotation[][] parameters = method.getParameterAnnotations();
+        parameters = ArrayUtils.nullToEmpty(parameters, Annotation[][].class);
         //
-        for (int index = 0; index < parameterTypes.length; index++) {
-            AnnotatedType parameterType = parameterTypes[index];
-            if (parameterType.isAnnotationPresent(KeyRef.class)) {
-                String type = parameterType.getAnnotation(KeyRef.class).value();
-                String value = objectMapper.convertValue(args[index], String.class);
-                return new KeyDto(type, value);
+        for (int pindex = 0; pindex < parameters.length; pindex++) {
+            Annotation[] parameter = parameters[pindex];
+            parameter = ArrayUtils.nullToEmpty(parameter, Annotation[].class);
+            //
+            for (int aindex = 0; aindex < parameters.length; aindex++) {
+                Annotation annotation = parameter[aindex];
+                if (annotation instanceof KeyRef keyRef) {
+                    String type = keyRef.value();
+                    String value = objectMapper.convertValue(args[pindex], String.class);
+                    return new KeyDto(type, value);
+                }
             }
         }
         //

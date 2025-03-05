@@ -91,6 +91,10 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
             throw new IllegalStateException(ex);
         }
         //
+        if (!contractClass.isInterface()) {
+            return;
+        }
+        //
         String beanName = ContractFactory.class.getName() + "::" + contractClass.getName();
         //
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ContractFactory.class);

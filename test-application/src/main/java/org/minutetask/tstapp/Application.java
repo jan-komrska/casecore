@@ -47,6 +47,9 @@ public class Application {
     @Autowired
     private UseCaseManager useCaseManager = null;
 
+    @Autowired
+    private CaseContract caseContract = null;
+
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
@@ -56,8 +59,10 @@ public class Application {
             createEncounter1.setTcn("tcn-1.1");
             createEncounter1.setPersonId("personId-1");
             createEncounter1.setEncounterId("encounterId-1");
-            createEncounter1.setAction(Runnable.class);
+            createEncounter1.setContract(CreateEncounterImpl.class);
             useCaseManager.saveUseCase(createEncounter1);
+            //
+            caseContract.executeService(createEncounter1.getId(), "Hello world!");
             log.info("request-1: " + createEncounter1.toString());
             //
             CreateEncounterCase createEncounter2 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
@@ -67,8 +72,10 @@ public class Application {
             createEncounter2.setEncounterId("encounterId-2.1");
             useCaseManager.saveUseCase(createEncounter2);
             createEncounter2.setTcn("tcn-2.2");
-            createEncounter2.setAction(Runnable.class);
+            createEncounter2.setContract(CreateEncounterImpl.class);
             useCaseManager.saveUseCase(createEncounter2);
+            //
+            caseContract.executeService(createEncounter1.getId(), "Hello world! - 2");
             log.info("request-2: " + createEncounter2.toString());
             //
             CreateEncounterCase createEncounter3 = useCaseManager.getUseCase(createEncounter1.getId(), CreateEncounterCase.class);
