@@ -69,6 +69,7 @@ public class Application {
     public void reviewDocument() {
         DocumentCase reviewCase = new DocumentCase();
         reviewCase.setDocumentId(1001l);
+        reviewCase.setReviewDocumentId(1001l);
         reviewCase.setFlow(ReviewDocumentFlow.class);
         reviewCase = useCaseManager.saveUseCase(reviewCase);
         log.info("document case: {}", reviewCase.toString());
