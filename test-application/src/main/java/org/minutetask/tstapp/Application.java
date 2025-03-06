@@ -66,9 +66,7 @@ public class Application {
             documentContract.run(documentCase.getCaseId());
             //
             documentCase = useCaseManager.refreshUseCase(documentCase);
-            log.info("document case: {}", documentCase.toString());
-            //
-            documentContract.pageUploaded(documentCase.getPageUrl());
+            documentContract.pageUploaded(documentCase.getPageUrl(), 0, "OK");
             //
             log.info("OK");
         };

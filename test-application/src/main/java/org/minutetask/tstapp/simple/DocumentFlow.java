@@ -28,7 +28,7 @@ import org.minutetask.casecore.annotation.KeyRef;
 public interface DocumentFlow {
     public void run(@IdRef Long id);
 
-    public void pageUploaded(@KeyRef("DocumentCaseApi::pageUrl") String pageUrl);
+    public void pageUploaded(@KeyRef("DocumentFlow::pageUrl") String pageUrl, int pageState, String message);
 
-    public void notificationDelivered(@KeyRef("DocumentCaseApi::notificationId") Long notificationId);
+    public void reviewFinished(@KeyRef("DocumentFlow::documentId") String documentId, int score, String message);
 }

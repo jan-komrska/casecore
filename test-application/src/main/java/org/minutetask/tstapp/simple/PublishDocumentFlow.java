@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.KeyRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,16 +39,20 @@ public class PublishDocumentFlow implements DocumentFlow {
     @Override
     public void run(Long id) {
         DocumentCase documentCase = useCaseManager.getUseCase(id, DocumentCase.class);
+        log.info("started case [caseId={}]", documentCase.getCaseId());
+        //
         documentCase.setPageUrl("page-" + UUID.randomUUID().toString());
         useCaseManager.saveUseCase(documentCase);
         //
-        log.info("send publish request [documentId={}, pageUrl={}]", documentCase.getDocumentId(), documentCase.getPageUrl());
+        log.info("sending publish request [documentId={}, pageUrl={}]", documentCase.getDocumentId(), documentCase.getPageUrl());
+        // send publish request
     }
 
     @Override
-    public void pageUploaded(@IdRef String pageUrl) {
+    public void pageUploaded(@IdRef String pageUrl, int pageState, String message) {
         DocumentCase documentCase = useCaseManager.getUseCase(pageUrl, DocumentCase.class);
-        log.info("received publish response [documentId={}, pageUrl={}]", documentCase.getDocumentId(), documentCase.getPageUrl());
+        log.info("received publish response [documentId={}, pageUrl={}, pageState=()]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
         //
         documentCase.setClosed(true);
         useCaseManager.saveUseCase(documentCase);
@@ -56,7 +61,7 @@ public class PublishDocumentFlow implements DocumentFlow {
     }
 
     @Override
-    public void notificationDelivered(Long notificationId) {
+    public void reviewFinished(@KeyRef("DocumentFlow::documentId") String documentId, int score, String message) {
         throw new UnsupportedOperationException();
     }
 }

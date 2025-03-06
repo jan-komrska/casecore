@@ -39,13 +39,11 @@ public class DocumentCase {
     @ClosedRef
     private boolean closed;
 
+    @KeyRef("DocumentFlow::documentId")
     private String documentId;
 
-    @KeyRef("DocumentCaseApi::pageUrl")
+    @KeyRef("DocumentFlow::pageUrl")
     private String pageUrl;
-
-    @KeyRef("DocumentCaseApi::notificationId")
-    private Long notificationId;
 
     @ServiceRef(DocumentFlow.class)
     private Class<? extends DocumentFlow> flow;
