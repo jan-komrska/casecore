@@ -85,10 +85,11 @@ public class Application {
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
-            log.info("Let's start flow:");
+            log.info("---");
             publishDocument();
+            log.info("---");
             reviewDocument();
-            log.info("OK");
+            log.info("---");
         };
     }
 }

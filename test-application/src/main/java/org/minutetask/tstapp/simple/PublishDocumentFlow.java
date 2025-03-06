@@ -51,7 +51,7 @@ public class PublishDocumentFlow implements DocumentFlow {
     @Override
     public void pageUploaded(@IdRef String pageUrlAsIdRef, int pageState, String message) {
         DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
-        log.info("received publish response [documentId={}, pageUrl={}, pageState=()]", //
+        log.info("received publish response [documentId={}, pageUrl={}, pageState={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
         //
         documentCase.setClosed(true);

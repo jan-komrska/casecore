@@ -53,7 +53,7 @@ public class ReviewDocumentFlow implements DocumentFlow {
     @Override
     public void pageUploaded(@IdRef String pageUrlAsIdRef, int pageState, String message) {
         DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
-        log.info("received internal-publish response [documentId={}, pageUrl={}, pageState=()]", //
+        log.info("received internal-publish response [documentId={}, pageUrl={}, pageState={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
         //
         log.info("sending internal-review request [documentId={}, pageUrl={}]", //
@@ -64,8 +64,8 @@ public class ReviewDocumentFlow implements DocumentFlow {
     @Override
     public void reviewFinished(@IdRef String pageUrlAsIdRef, int score, String message) {
         DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
-        log.info("received internal-review response [documentId={}, score={}]", //
-                documentCase.getDocumentId(), score);
+        log.info("received internal-review response [documentId={}, pageUrl={}, score={}]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl(), score);
         //
         documentCase.setClosed(true);
         useCaseManager.saveUseCase(documentCase);
