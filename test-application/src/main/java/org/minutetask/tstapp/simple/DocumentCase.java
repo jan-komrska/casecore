@@ -40,7 +40,7 @@ public class DocumentCase {
     private boolean closed;
 
     @KeyRef("DocumentFlow::documentId")
-    private String documentId;
+    private Long documentId;
 
     @KeyRef("DocumentFlow::pageUrl")
     private String pageUrl;

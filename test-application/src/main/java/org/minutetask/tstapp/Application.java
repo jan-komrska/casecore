@@ -26,6 +26,7 @@ import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.tstapp.simple.DocumentCase;
 import org.minutetask.tstapp.simple.DocumentFlow;
 import org.minutetask.tstapp.simple.PublishDocumentFlow;
+import org.minutetask.tstapp.simple.ReviewDocumentFlow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -52,21 +53,39 @@ public class Application {
     @Autowired
     private DocumentFlow documentContract = null;
 
+    public void publishDocument() {
+        DocumentCase publishCase = new DocumentCase();
+        publishCase.setDocumentId(1001l);
+        publishCase.setFlow(PublishDocumentFlow.class);
+        publishCase = useCaseManager.saveUseCase(publishCase);
+        log.info("document case: {}", publishCase.toString());
+        //
+        documentContract.run(publishCase.getCaseId());
+        //
+        publishCase = useCaseManager.refreshUseCase(publishCase);
+        documentContract.pageUploaded(publishCase.getPageUrl(), 0, "OK");
+    }
+
+    public void reviewDocument() {
+        DocumentCase reviewCase = new DocumentCase();
+        reviewCase.setDocumentId(1001l);
+        reviewCase.setFlow(ReviewDocumentFlow.class);
+        reviewCase = useCaseManager.saveUseCase(reviewCase);
+        log.info("document case: {}", reviewCase.toString());
+        //
+        documentContract.run(reviewCase.getCaseId());
+        //
+        reviewCase = useCaseManager.refreshUseCase(reviewCase);
+        documentContract.reviewFinished(reviewCase.getDocumentId(), 10, "OK");
+    }
+
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
             log.info("Let's start flow:");
             //
-            DocumentCase documentCase = new DocumentCase();
-            documentCase.setDocumentId("document-1");
-            documentCase.setFlow(PublishDocumentFlow.class);
-            documentCase = useCaseManager.saveUseCase(documentCase);
-            log.info("document case: {}", documentCase.toString());
-            //
-            documentContract.run(documentCase.getCaseId());
-            //
-            documentCase = useCaseManager.refreshUseCase(documentCase);
-            documentContract.pageUploaded(documentCase.getPageUrl(), 0, "OK");
+            publishDocument();
+            reviewDocument();
             //
             log.info("OK");
         };

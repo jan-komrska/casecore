@@ -20,8 +20,6 @@ package org.minutetask.tstapp.simple;
  * =========================LICENSE_END==================================
  */
 
-import java.util.UUID;
-
 import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.IdRef;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class PublishDocumentFlow implements DocumentFlow {
+public class ReviewDocumentFlow implements DocumentFlow {
     @Autowired
     private UseCaseManager useCaseManager;
 
@@ -39,19 +37,16 @@ public class PublishDocumentFlow implements DocumentFlow {
     public void run(Long id) {
         DocumentCase documentCase = useCaseManager.getUseCase(id, DocumentCase.class);
         log.info("started case [caseId={}]", documentCase.getCaseId());
-        //
-        documentCase.setPageUrl("page-" + UUID.randomUUID().toString());
         useCaseManager.saveUseCase(documentCase);
         //
-        log.info("sending publish request [documentId={}, pageUrl={}]", documentCase.getDocumentId(), documentCase.getPageUrl());
-        // send publish request
+        log.info("requesting review [documentId={}]", documentCase.getDocumentId());
+        // send review request
     }
 
     @Override
-    public void pageUploaded(@IdRef String pageUrlAsIdRef, int pageState, String message) {
-        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
-        log.info("received publish response [documentId={}, pageUrl={}, pageState=()]", //
-                documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
+    public void reviewFinished(@IdRef Long documentIdAsIdRef, int score, String message) {
+        DocumentCase documentCase = useCaseManager.getUseCase(documentIdAsIdRef, DocumentCase.class);
+        log.info("received review [documentId={}, score={}]", documentCase.getDocumentId(), score);
         //
         documentCase.setClosed(true);
         useCaseManager.saveUseCase(documentCase);
