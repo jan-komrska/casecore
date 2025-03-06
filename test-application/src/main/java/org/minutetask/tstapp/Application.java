@@ -63,6 +63,7 @@ public class Application {
         documentFlow.run(publishCase.getCaseId());
         //
         publishCase = useCaseManager.refreshUseCase(publishCase);
+        //
         documentFlow.pageUploaded(publishCase.getPageUrl(), 0, "OK");
     }
 
@@ -77,7 +78,8 @@ public class Application {
         documentFlow.run(reviewCase.getCaseId());
         //
         reviewCase = useCaseManager.refreshUseCase(reviewCase);
-        documentFlow.reviewFinished(reviewCase.getDocumentId(), 10, "OK");
+        //
+        documentFlow.reviewFinished(reviewCase.getReviewDocumentId(), 10, "OK");
     }
 
     @Bean
