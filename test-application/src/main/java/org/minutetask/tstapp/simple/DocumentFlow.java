@@ -32,7 +32,7 @@ public interface DocumentFlow {
         throw new UnsupportedOperationException();
     }
 
-    default public void reviewFinished(@KeyRef("DocumentFlow::reviewDocumentId") Long documentId, int score, String message) {
+    default public void reviewFinished(@KeyRef("DocumentFlow::pageUrl") String pageUrl, int score, String message) {
         throw new UnsupportedOperationException();
     }
 }

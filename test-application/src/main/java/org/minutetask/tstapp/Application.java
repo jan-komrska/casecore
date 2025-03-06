@@ -63,14 +63,12 @@ public class Application {
         documentFlow.run(publishCase.getCaseId());
         //
         publishCase = useCaseManager.refreshUseCase(publishCase);
-        //
         documentFlow.pageUploaded(publishCase.getPageUrl(), 0, "OK");
     }
 
     public void reviewDocument() {
         DocumentCase reviewCase = new DocumentCase();
-        reviewCase.setDocumentId(1001l);
-        reviewCase.setReviewDocumentId(1001l);
+        reviewCase.setDocumentId(1002l);
         reviewCase.setFlow(ReviewDocumentFlow.class);
         reviewCase = useCaseManager.saveUseCase(reviewCase);
         log.info("document case: {}", reviewCase.toString());
@@ -78,18 +76,18 @@ public class Application {
         documentFlow.run(reviewCase.getCaseId());
         //
         reviewCase = useCaseManager.refreshUseCase(reviewCase);
+        documentFlow.pageUploaded(reviewCase.getPageUrl(), 0, "OK");
         //
-        documentFlow.reviewFinished(reviewCase.getReviewDocumentId(), 10, "OK");
+        reviewCase = useCaseManager.refreshUseCase(reviewCase);
+        documentFlow.reviewFinished(reviewCase.getPageUrl(), 10, "review text");
     }
 
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
             log.info("Let's start flow:");
-            //
             publishDocument();
             reviewDocument();
-            //
             log.info("OK");
         };
     }

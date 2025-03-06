@@ -1,5 +1,7 @@
 package org.minutetask.tstapp.simple;
 
+import java.util.UUID;
+
 /*-
  * ========================LICENSE_START=================================
  * casecore-test-application
@@ -39,14 +41,31 @@ public class ReviewDocumentFlow implements DocumentFlow {
         log.info("started case [caseId={}]", documentCase.getCaseId());
         useCaseManager.saveUseCase(documentCase);
         //
-        log.info("requesting review [documentId={}]", documentCase.getDocumentId());
+        //
+        documentCase.setPageUrl("page-" + UUID.randomUUID().toString());
+        useCaseManager.saveUseCase(documentCase);
+        //
+        log.info("sending internal-publish request [documentId={}, pageUrl={}]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl());
+        // send internal publish request
+    }
+
+    @Override
+    public void pageUploaded(@IdRef String pageUrlAsIdRef, int pageState, String message) {
+        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
+        log.info("received internal-publish response [documentId={}, pageUrl={}, pageState=()]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
+        //
+        log.info("sending internal-review request [documentId={}, pageUrl={}]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl());
         // send review request
     }
 
     @Override
-    public void reviewFinished(@IdRef Long documentIdAsIdRef, int score, String message) {
-        DocumentCase documentCase = useCaseManager.getUseCase(documentIdAsIdRef, DocumentCase.class);
-        log.info("received review [documentId={}, score={}]", documentCase.getDocumentId(), score);
+    public void reviewFinished(@IdRef String pageUrlAsIdRef, int score, String message) {
+        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
+        log.info("received internal-review response [documentId={}, score={}]", //
+                documentCase.getDocumentId(), score);
         //
         documentCase.setClosed(true);
         useCaseManager.saveUseCase(documentCase);

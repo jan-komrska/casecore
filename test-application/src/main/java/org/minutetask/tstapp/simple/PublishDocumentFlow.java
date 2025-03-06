@@ -43,7 +43,8 @@ public class PublishDocumentFlow implements DocumentFlow {
         documentCase.setPageUrl("page-" + UUID.randomUUID().toString());
         useCaseManager.saveUseCase(documentCase);
         //
-        log.info("sending publish request [documentId={}, pageUrl={}]", documentCase.getDocumentId(), documentCase.getPageUrl());
+        log.info("sending publish request [documentId={}, pageUrl={}]", //
+                documentCase.getDocumentId(), documentCase.getPageUrl());
         // send publish request
     }
 
