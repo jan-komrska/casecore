@@ -41,7 +41,6 @@ public class ReviewDocumentFlow implements DocumentFlow {
         log.info("started case [caseId={}]", documentCase.getCaseId());
         useCaseManager.saveUseCase(documentCase);
         //
-        //
         documentCase.setPageUrl("page-" + UUID.randomUUID().toString());
         useCaseManager.saveUseCase(documentCase);
         //
