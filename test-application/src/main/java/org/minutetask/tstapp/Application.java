@@ -51,7 +51,7 @@ public class Application {
     private UseCaseManager useCaseManager = null;
 
     @Autowired
-    private DocumentFlow documentContract = null;
+    private DocumentFlow documentFlow = null;
 
     public void publishDocument() {
         DocumentCase publishCase = new DocumentCase();
@@ -60,10 +60,10 @@ public class Application {
         publishCase = useCaseManager.saveUseCase(publishCase);
         log.info("document case: {}", publishCase.toString());
         //
-        documentContract.run(publishCase.getCaseId());
+        documentFlow.run(publishCase.getCaseId());
         //
         publishCase = useCaseManager.refreshUseCase(publishCase);
-        documentContract.pageUploaded(publishCase.getPageUrl(), 0, "OK");
+        documentFlow.pageUploaded(publishCase.getPageUrl(), 0, "OK");
     }
 
     public void reviewDocument() {
@@ -74,10 +74,10 @@ public class Application {
         reviewCase = useCaseManager.saveUseCase(reviewCase);
         log.info("document case: {}", reviewCase.toString());
         //
-        documentContract.run(reviewCase.getCaseId());
+        documentFlow.run(reviewCase.getCaseId());
         //
         reviewCase = useCaseManager.refreshUseCase(reviewCase);
-        documentContract.reviewFinished(reviewCase.getDocumentId(), 10, "OK");
+        documentFlow.reviewFinished(reviewCase.getDocumentId(), 10, "OK");
     }
 
     @Bean
