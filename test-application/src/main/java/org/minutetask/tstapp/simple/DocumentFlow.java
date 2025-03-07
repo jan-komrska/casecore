@@ -26,7 +26,7 @@ import org.minutetask.casecore.annotation.KeyRef;
 
 @ContractRef
 public interface DocumentFlow {
-    public void run(@IdRef Long id);
+    public void run(@IdRef Long caseId);
 
     default public void pageUploaded(@KeyRef("DocumentFlow::pageUrl") String pageUrl, int pageState, String message) {
         throw new UnsupportedOperationException();

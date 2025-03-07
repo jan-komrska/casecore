@@ -36,8 +36,8 @@ public class ReviewDocumentFlow implements DocumentFlow {
     private UseCaseManager useCaseManager;
 
     @Override
-    public void run(Long id) {
-        DocumentCase documentCase = useCaseManager.getUseCase(id, DocumentCase.class);
+    public void run(Long caseId) {
+        DocumentCase documentCase = useCaseManager.getUseCase(caseId, DocumentCase.class);
         log.info("started case [caseId={}]", documentCase.getCaseId());
         useCaseManager.saveUseCase(documentCase);
         //
@@ -50,8 +50,8 @@ public class ReviewDocumentFlow implements DocumentFlow {
     }
 
     @Override
-    public void pageUploaded(@IdRef String pageUrlAsIdRef, int pageState, String message) {
-        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
+    public void pageUploaded(@IdRef String pageUrlAsCaseId, int pageState, String message) {
+        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsCaseId, DocumentCase.class);
         log.info("received internal-publish response [documentId={}, pageUrl={}, pageState={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl(), pageState);
         //
@@ -61,8 +61,8 @@ public class ReviewDocumentFlow implements DocumentFlow {
     }
 
     @Override
-    public void reviewFinished(@IdRef String pageUrlAsIdRef, int score, String message) {
-        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsIdRef, DocumentCase.class);
+    public void reviewFinished(@IdRef String pageUrlAsCaseId, int score, String message) {
+        DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsCaseId, DocumentCase.class);
         log.info("received internal-review response [documentId={}, pageUrl={}, score={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl(), score);
         //
