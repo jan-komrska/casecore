@@ -22,6 +22,7 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.ConflictException;
@@ -37,6 +38,15 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
@@ -44,6 +54,9 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
+
+    @Autowired
+    private LiteralService literalService;
 
     @Autowired
     private UseCaseService useCaseService;
@@ -55,13 +68,81 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     private UseCaseToolkit useCaseToolkit;
 
     @Autowired
-    private LiteralService literalService;
+    private PlatformTransactionManager platformTransactionManager;
+
+    private TransactionTemplate transactionTemplate;
 
     //
 
-    public Object invokeImpl(Method method, Object[] args) throws Exception {
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @ToString
+    private static class Invocation {
+        private Long useCaseId;
+        private Class<?> serviceClass;
+
+        private boolean persistent;
+        private boolean async;
+        private String taskExecutor;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        transactionTemplate = new TransactionTemplate(platformTransactionManager);
+        transactionTemplate.setPropagationBehavior(Propagation.REQUIRED.value());
+    }
+
+    public Object invokeImpl(Invocation invocation, Method method, Object[] args) throws Exception {
+        final Long actionId;
+        //
+        if (invocation.isPersistent()) {
+            actionId = transactionTemplate.execute((status) -> {
+                UseCaseEntity parentUseCase = useCaseService.getUseCase(invocation.getUseCaseId());
+                //
+                UseCaseActionEntity useCaseAction = useCaseActionService.newAction(parentUseCase);
+                useCaseActionService.setActionServiceClass(useCaseAction, invocation.getServiceClass());
+                useCaseActionService.setActionMethod(useCaseAction, method);
+                useCaseActionService.setActionArgs(useCaseAction, args);
+                //
+                parentUseCase.getUseCaseActions().add(useCaseAction);
+                useCaseAction = useCaseActionService.persistAction(useCaseAction);
+                useCaseService.saveUseCase(parentUseCase);
+                //
+                return useCaseAction.getId();
+            });
+        } else {
+            actionId = null;
+        }
+        //
+        Method serviceMethod = useCaseToolkit.getImplementationMethod(invocation.getServiceClass(), method);
+        Object[] newArgs = ArrayUtils.clone(ArrayUtils.nullToEmpty(args));
+        useCaseToolkit.setUseCaseId(serviceMethod, newArgs, invocation.getUseCaseId());
+        //
+        Object result = useCaseToolkit.executeService(invocation.getServiceClass(), method, newArgs);
+        //
+        if (invocation.isPersistent()) {
+            transactionTemplate.execute((status) -> {
+                UseCaseActionEntity useCaseAction = useCaseActionService.getAction(actionId);
+                useCaseAction.setClosed(true);
+                useCaseAction = useCaseActionService.saveAction(useCaseAction);
+                //
+                return useCaseAction.getId();
+            });
+        }
+        //
+        return result;
+    }
+
+    @Override
+    public Object invoke(Method method, Object[] args) throws Exception {
+        Invocation invocation = new Invocation();
+        //
         MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        boolean persistentMethod = (methodRef != null) ? methodRef.persistent() : false;
+        invocation.setAsync((methodRef != null) ? methodRef.async() : false);
+        invocation.setPersistent((methodRef != null) ? methodRef.persistent() : false);
+        invocation.setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
+        //
         Long useCaseId = useCaseToolkit.getUseCaseId(method, args);
         KeyDto useCaseKey = useCaseToolkit.getUseCaseKey(method, args);
         //
@@ -74,47 +155,22 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             throw new BadRequestException();
         }
         //
-        if (useCase.isClosed()) {
+        if (!useCase.isClosed()) {
+            invocation.setUseCaseId(useCase.getId());
+        } else {
             throw new ConflictException();
         }
         //
         Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
         Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
-        Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
+        invocation.setServiceClass(literalService.getClassFromId(serviceClassId));
         //
-        UseCaseActionEntity useCaseAction = useCaseActionService.newAction(useCase);
-        useCaseActionService.setActionServiceClass(useCaseAction, serviceClass);
-        useCaseActionService.setActionMethod(useCaseAction, method);
-        useCaseActionService.setActionArgs(useCaseAction, args);
-        if (persistentMethod) {
-            useCase.getUseCaseActions().add(useCaseAction);
-            useCaseAction = useCaseActionService.persistAction(useCaseAction);
-        }
-        //
-        Method serviceMethod = useCaseToolkit.getImplementationMethod(serviceClass, method);
-        useCaseToolkit.setUseCaseId(serviceMethod, args, useCase.getId());
-        //
-        Object result = useCaseToolkit.executeService(serviceClass, method, args);
-        //
-        if (persistentMethod) {
-            useCaseAction.setClosed(true);
-            useCaseAction = useCaseActionService.saveAction(useCaseAction);
-        }
-        return result;
-    }
-
-    @Override
-    public Object invoke(Method method, Object[] args) throws Exception {
-        MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        boolean asyncMethod = (methodRef != null) ? methodRef.async() : false;
-        String taskExecutor = (methodRef != null) ? methodRef.taskExecutor() : "";
-        //
-        if (asyncMethod) {
-            return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
-                return self.invokeImpl(method, args);
+        if (invocation.isAsync()) {
+            return useCaseToolkit.executeAsync(invocation.getTaskExecutor(), method.getReturnType(), () -> {
+                return self.invokeImpl(invocation, method, args);
             });
         } else {
-            return self.invokeImpl(method, args);
+            return self.invokeImpl(invocation, method, args);
         }
     }
 }

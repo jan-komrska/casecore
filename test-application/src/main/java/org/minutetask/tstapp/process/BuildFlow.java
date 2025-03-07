@@ -29,12 +29,12 @@ public interface BuildFlow {
     @MethodRef(async = true, persistent = true)
     public void run(@IdRef Long caseId);
 
-    @MethodRef(async = true, persistent = false)
+    @MethodRef(async = true, persistent = true)
     public void compileProject(@IdRef Long caseId);
 
-    @MethodRef(async = true, persistent = false)
+    @MethodRef(async = true, persistent = true)
     public void packageProject(@IdRef Long caseId);
 
-    @MethodRef(async = true, persistent = false)
+    @MethodRef(async = true, persistent = true)
     public void deployProject(@IdRef Long caseId);
 }

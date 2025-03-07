@@ -58,6 +58,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public UseCaseActionEntity newAction(UseCaseEntity useCase) {
         UseCaseActionEntity action = new UseCaseActionEntity();
+        action.setUseCase(useCase);
         action.setClosed(false);
         action.setCreatedDate(LocalDateTime.now());
         return action;
