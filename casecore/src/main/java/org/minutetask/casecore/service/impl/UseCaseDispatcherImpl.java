@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 
 import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.BadRequestException;
+import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.service.api.LiteralService;
@@ -71,6 +72,10 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             useCase = useCaseService.getUseCase(useCaseKey.getType(), useCaseKey.getValue());
         } else {
             throw new BadRequestException();
+        }
+        //
+        if (useCase.isClosed()) {
+            throw new ConflictException();
         }
         //
         Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
