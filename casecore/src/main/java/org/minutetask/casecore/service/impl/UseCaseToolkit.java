@@ -192,29 +192,38 @@ public class UseCaseToolkit {
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
         AsyncTaskExecutor proxyExecutor = getAsyncTaskExecutor(executorName);
         Callable<Object> proxyCallable = () -> {
-            Object result = callable.call();
+            Object result = null;
+            //
+            try {
+                result = callable.call();
+            } catch (Exception ex) {
+                if (resultClass.equals(Void.TYPE)) {
+                    log.log(Level.SEVERE, "Unexpected exception:", ex);
+                }
+                return rethrowException(ex);
+            }
             //
             if (result instanceof Future<?> future) {
                 try {
                     return future.get();
                 } catch (ExecutionException ex) {
-                    if (resultClass.isAssignableFrom(Void.class)) {
+                    if (resultClass.equals(Void.TYPE)) {
                         log.log(Level.SEVERE, "Unexpected exception:", ex.getCause());
                     }
                     return rethrowException(ex.getCause());
                 }
             }
             //
-            return null;
+            return result;
         };
         //
-        if (resultClass.isAssignableFrom(CompletableFuture.class)) {
+        if (resultClass.equals(CompletableFuture.class)) {
             Object proxyResult = proxyExecutor.submitCompletable(proxyCallable);
             return resultClass.cast(proxyResult);
         } else if (resultClass.isAssignableFrom(Future.class)) {
             Object proxyResult = proxyExecutor.submit(proxyCallable);
             return resultClass.cast(proxyResult);
-        } else if (resultClass.isAssignableFrom(Void.class)) {
+        } else if (resultClass.equals(Void.TYPE)) {
             proxyExecutor.submit(proxyCallable);
             return null;
         } else {

@@ -87,6 +87,7 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         useCaseActionService.setActionMethod(useCaseAction, method);
         useCaseActionService.setActionArgs(useCaseAction, args);
         if (persistentMethod) {
+            useCase.getUseCaseActions().add(useCaseAction);
             useCaseAction = useCaseActionService.persistAction(useCaseAction);
         }
         //

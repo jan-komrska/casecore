@@ -23,6 +23,9 @@ package org.minutetask.tstapp;
 import org.minutetask.casecore.CaseCoreScan;
 import org.minutetask.casecore.CoreCaseConfiguration;
 import org.minutetask.casecore.UseCaseManager;
+import org.minutetask.tstapp.process.BuildCase;
+import org.minutetask.tstapp.process.BuildFlow;
+import org.minutetask.tstapp.process.BuildFlowImpl;
 import org.minutetask.tstapp.simple.DocumentCase;
 import org.minutetask.tstapp.simple.DocumentFlow;
 import org.minutetask.tstapp.simple.PublishDocumentFlow;
@@ -53,6 +56,9 @@ public class Application {
     @Autowired
     private DocumentFlow documentFlow = null;
 
+    @Autowired
+    private BuildFlow buildFlow = null;
+
     public void publishDocument() {
         DocumentCase publishCase = new DocumentCase();
         publishCase.setDocumentId(1001l);
@@ -82,6 +88,15 @@ public class Application {
         documentFlow.reviewFinished(reviewCase.getPageUrl(), 10, "review text");
     }
 
+    public void buildProject() {
+        BuildCase buildCase = new BuildCase();
+        buildCase.setProjectId(2001l);
+        buildCase.setFlow(BuildFlowImpl.class);
+        buildCase = useCaseManager.saveUseCase(buildCase);
+        //
+        buildFlow.run(buildCase.getCaseId());
+    }
+
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
@@ -89,6 +104,8 @@ public class Application {
             publishDocument();
             log.info("---");
             reviewDocument();
+            log.info("---");
+            buildProject();
             log.info("---");
         };
     }

@@ -20,14 +20,21 @@ package org.minutetask.tstapp.process;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.MethodRef;
 
+@ContractRef
 public interface BuildFlow {
+    @MethodRef(async = true, persistent = true)
     public void run(@IdRef Long caseId);
 
+    @MethodRef(async = true, persistent = false)
     public void compileProject(@IdRef Long caseId);
 
+    @MethodRef(async = true, persistent = false)
     public void packageProject(@IdRef Long caseId);
 
+    @MethodRef(async = true, persistent = false)
     public void deployProject(@IdRef Long caseId);
 }
