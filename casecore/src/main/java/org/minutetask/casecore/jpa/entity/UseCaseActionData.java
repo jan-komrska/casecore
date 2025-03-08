@@ -48,8 +48,11 @@ public class UseCaseActionData {
     @Getter(AccessLevel.NONE)
     private List<Object> parameters;
 
+    private Long retryCount;
+
     private Long lastExceptionClassId;
 
+    @Setter(AccessLevel.NONE)
     private String lastExceptionMessage;
 
     //
@@ -68,10 +71,16 @@ public class UseCaseActionData {
         return parameters;
     }
 
+    public void setLastExceptionMessage(String lastExceptionMessage) {
+        this.lastExceptionMessage = (StringUtils.isNotEmpty(lastExceptionMessage)) ? lastExceptionMessage : null;
+    }
+
     @JsonIgnore
     public boolean isEmpty() {
         return (serviceClassId == null) //
                 && (methodClassId == null) && StringUtils.isEmpty(methodName) //
-                && getParameterClassIds().isEmpty() && getParameters().isEmpty();
+                && getParameterClassIds().isEmpty() && getParameters().isEmpty() //
+                && (retryCount == null) //
+                && (lastExceptionClassId == null) && (lastExceptionMessage == null);
     }
 }

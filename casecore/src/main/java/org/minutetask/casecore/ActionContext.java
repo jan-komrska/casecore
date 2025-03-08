@@ -1,4 +1,4 @@
-package org.minutetask.casecore.annotation;
+package org.minutetask.casecore;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,12 +20,23 @@ package org.minutetask.casecore.annotation;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
-public @interface FeatureRef {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public class ActionContext {
+    private boolean retryOnFailure;
+
+    private int retryDelay;
+
+    private int retryCount;
+
+    private Class<?> lastExceptionClass;
+
+    private String lastExceptionMessage;
 }
