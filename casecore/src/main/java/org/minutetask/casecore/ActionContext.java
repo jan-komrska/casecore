@@ -21,13 +21,9 @@ package org.minutetask.casecore;
  */
 
 public interface ActionContext {
-    public boolean isRetryOnFailure();
+    public int getRetryOnFailureDelay();
 
-    public void setRetryOnFailure(boolean retryOnFailure);
-
-    public int getRetryDelay();
-
-    public void setRetryDelay(int retryDelay);
+    public void setRetryOnFailureDelay(int retryDelay);
 
     //
 

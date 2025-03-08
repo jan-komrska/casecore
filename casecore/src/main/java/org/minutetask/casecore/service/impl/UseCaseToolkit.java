@@ -62,6 +62,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
@@ -137,6 +139,18 @@ public class UseCaseToolkit {
     public static class KeyDto {
         private String type;
         private String value;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public class ActionContextDto implements ActionContext {
+        private int retryOnFailureDelay;
+        private int retryCount;
+
+        private Class<?> lastExceptionClass;
+        private String lastExceptionMessage;
     }
 
     public Long getUseCaseId(Method method, Object[] args) {
@@ -279,6 +293,17 @@ public class UseCaseToolkit {
         }
         //
         return useCaseAction;
+    }
+
+    public ActionContext newActionContext(UseCaseActionEntity useCaseAction) {
+        ActionContextDto actionContext = new ActionContextDto();
+        //
+        actionContext.setRetryOnFailureDelay(-1);
+        actionContext.setRetryCount(useCaseActionService.getRetryCount(useCaseAction));
+        actionContext.setLastExceptionClass(useCaseActionService.getLastExceptionClass(useCaseAction));
+        actionContext.setLastExceptionMessage(useCaseActionService.getLastExceptionMessage(useCaseAction));
+        //
+        return actionContext;
     }
 
     public Method getImplementationMethod(Class<?> serviceClass, Method method) {
