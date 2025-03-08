@@ -23,16 +23,12 @@ package org.minutetask.casecore.service.impl;
 import java.lang.reflect.Method;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.minutetask.casecore.annotation.MethodRef;
-import org.minutetask.casecore.exception.BadRequestException;
-import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
-import org.minutetask.casecore.service.api.LiteralService;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.minutetask.casecore.service.api.UseCaseService;
-import org.minutetask.casecore.service.impl.UseCaseToolkit.KeyDto;
+import org.minutetask.casecore.service.impl.UseCaseToolkit.Invocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
@@ -43,10 +39,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
@@ -54,9 +46,6 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
-
-    @Autowired
-    private LiteralService literalService;
 
     @Autowired
     private UseCaseService useCaseService;
@@ -73,19 +62,6 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     private TransactionTemplate transactionTemplate;
 
     //
-
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    @ToString
-    private static class Invocation {
-        private Long useCaseId;
-        private Class<?> serviceClass;
-
-        private boolean persistent;
-        private boolean async;
-        private String taskExecutor;
-    }
 
     @PostConstruct
     public void postConstruct() {
@@ -136,34 +112,7 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(Method method, Object[] args) throws Exception {
-        Invocation invocation = new Invocation();
-        //
-        MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        invocation.setAsync((methodRef != null) ? methodRef.async() : false);
-        invocation.setPersistent((methodRef != null) ? methodRef.persistent() : false);
-        invocation.setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
-        //
-        Long useCaseId = useCaseToolkit.getUseCaseId(method, args);
-        KeyDto useCaseKey = useCaseToolkit.getUseCaseKey(method, args);
-        //
-        UseCaseEntity useCase;
-        if (useCaseId != null) {
-            useCase = useCaseService.getUseCase(useCaseId);
-        } else if (useCaseKey != null) {
-            useCase = useCaseService.getUseCase(useCaseKey.getType(), useCaseKey.getValue());
-        } else {
-            throw new BadRequestException();
-        }
-        //
-        if (!useCase.isClosed()) {
-            invocation.setUseCaseId(useCase.getId());
-        } else {
-            throw new ConflictException();
-        }
-        //
-        Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
-        Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
-        invocation.setServiceClass(literalService.getClassFromId(serviceClassId));
+        Invocation invocation = useCaseToolkit.getInvocation(method, args);
         //
         if (invocation.isAsync()) {
             return useCaseToolkit.executeAsync(invocation.getTaskExecutor(), method.getReturnType(), () -> {

@@ -36,10 +36,14 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
+import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.exception.NotFoundException;
 import org.minutetask.casecore.exception.UnexpectedException;
+import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import org.minutetask.casecore.service.api.LiteralService;
+import org.minutetask.casecore.service.api.UseCaseService;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,6 +58,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
@@ -72,6 +78,12 @@ public class UseCaseToolkit {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private LiteralService literalService;
+
+    @Autowired
+    private UseCaseService useCaseService;
 
     //
 
@@ -120,6 +132,19 @@ public class UseCaseToolkit {
     public static class KeyDto {
         private String type;
         private String value;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString
+    public static class Invocation {
+        private Long useCaseId;
+        private Class<?> serviceClass;
+
+        private boolean persistent;
+        private boolean async;
+        private String taskExecutor;
     }
 
     public Long getUseCaseId(Method method, Object[] args) {
@@ -187,6 +212,39 @@ public class UseCaseToolkit {
         }
         //
         return null;
+    }
+
+    public Invocation getInvocation(Method method, Object[] args) {
+        Invocation invocation = new Invocation();
+        //
+        MethodRef methodRef = method.getAnnotation(MethodRef.class);
+        invocation.setAsync((methodRef != null) ? methodRef.async() : false);
+        invocation.setPersistent((methodRef != null) ? methodRef.persistent() : false);
+        invocation.setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
+        //
+        Long useCaseId = getUseCaseId(method, args);
+        KeyDto useCaseKey = getUseCaseKey(method, args);
+        //
+        UseCaseEntity useCase;
+        if (useCaseId != null) {
+            useCase = useCaseService.getUseCase(useCaseId);
+        } else if (useCaseKey != null) {
+            useCase = useCaseService.getUseCase(useCaseKey.getType(), useCaseKey.getValue());
+        } else {
+            throw new BadRequestException();
+        }
+        //
+        if (!useCase.isClosed()) {
+            invocation.setUseCaseId(useCase.getId());
+        } else {
+            throw new ConflictException();
+        }
+        //
+        Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
+        Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
+        invocation.setServiceClass(literalService.getClassFromId(serviceClassId));
+        //
+        return invocation;
     }
 
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
