@@ -64,50 +64,49 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         transactionTemplate.setPropagationBehavior(Propagation.REQUIRED.value());
     }
 
-    public Object invokeImpl(UseCaseActionEntity useCaseAction) throws Exception {
-        Long actionId = useCaseAction.getId();
-        Class<?> serviceClass = useCaseActionService.getServiceClass(useCaseAction);
-        Method contractMethod = useCaseActionService.getMethod(useCaseAction);
+    public Object invokeImpl(UseCaseActionEntity action) throws Exception {
+        Class<?> serviceClass = useCaseActionService.getServiceClass(action);
+        Method contractMethod = useCaseActionService.getMethod(action);
         Method serviceMethod = useCaseToolkit.getImplementationMethod(serviceClass, contractMethod);
         //
-        Object[] newArgs = ArrayUtils.clone(ArrayUtils.nullToEmpty(useCaseActionService.getArgs(useCaseAction)));
-        useCaseToolkit.setUseCaseId(serviceMethod, newArgs, useCaseAction.getUseCase().getId());
+        Object[] args = ArrayUtils.clone(ArrayUtils.nullToEmpty(useCaseActionService.getArgs(action)));
+        useCaseToolkit.setUseCaseId(serviceMethod, args, action.getUseCase().getId());
         //
         Object result;
         try {
-            result = useCaseToolkit.executeService(serviceClass, serviceMethod, newArgs);
+            result = useCaseToolkit.executeService(serviceClass, serviceMethod, args);
         } catch (Exception ex) {
-            if (useCaseActionService.isPersistent(useCaseAction)) {
+            if (useCaseActionService.isPersistent(action)) {
                 transactionTemplate.execute((status) -> {
-                    UseCaseActionEntity action = useCaseActionService.getAction(actionId);
-                    useCaseActionService.setLastException(action, ex);
+                    UseCaseActionEntity theAction = useCaseActionService.getAction(action.getId());
+                    useCaseActionService.setLastException(theAction, ex);
                     //
-                    if (useCaseActionService.isAsync(action)) {
-                        action.setActive(false);
-                        action.setClosed(false);
-                        action.setScheduledDate(LocalDateTime.now().plusSeconds(10));
+                    if (useCaseActionService.isAsync(theAction)) {
+                        theAction.setActive(false);
+                        theAction.setClosed(false);
+                        theAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
                     } else {
-                        action.setActive(false);
-                        action.setClosed(true);
+                        theAction.setActive(false);
+                        theAction.setClosed(true);
                     }
                     //
-                    action = useCaseActionService.saveAction(action);
-                    return action.getId();
+                    theAction = useCaseActionService.saveAction(theAction);
+                    return theAction.getId();
                 });
             }
             //
             return useCaseToolkit.rethrowException(ex);
         }
         //
-        if (useCaseActionService.isPersistent(useCaseAction)) {
+        if (useCaseActionService.isPersistent(action)) {
             transactionTemplate.execute((status) -> {
-                UseCaseActionEntity action = useCaseActionService.getAction(actionId);
-                action.setActive(false);
-                action.setClosed(true);
-                action.setScheduledDate(null);
-                action = useCaseActionService.saveAction(action);
+                UseCaseActionEntity theAction = useCaseActionService.getAction(action.getId());
+                theAction.setActive(false);
+                theAction.setClosed(true);
+                theAction.setScheduledDate(null);
+                theAction = useCaseActionService.saveAction(theAction);
                 //
-                return action.getId();
+                return theAction.getId();
             });
         }
         //
@@ -116,15 +115,15 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(Method method, Object[] args) throws Exception {
-        UseCaseActionEntity useCaseAction = useCaseToolkit.newAction(method, args);
+        UseCaseActionEntity action = useCaseToolkit.newAction(method, args);
         //
-        if (useCaseActionService.isAsync(useCaseAction)) {
-            String taskExecutor = useCaseActionService.getTaskExecutor(useCaseAction);
+        if (useCaseActionService.isAsync(action)) {
+            String taskExecutor = useCaseActionService.getTaskExecutor(action);
             return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
-                return self.invokeImpl(useCaseAction);
+                return self.invokeImpl(action);
             });
         } else {
-            return self.invokeImpl(useCaseAction);
+            return self.invokeImpl(action);
         }
     }
 }

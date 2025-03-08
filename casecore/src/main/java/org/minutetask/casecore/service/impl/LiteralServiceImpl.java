@@ -23,6 +23,7 @@ package org.minutetask.casecore.service.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.LiteralEntity;
@@ -162,7 +163,7 @@ public class LiteralServiceImpl implements LiteralService {
         //
         try {
             String value = getValueFromId(id);
-            return Class.forName(value, true, Thread.currentThread().getContextClassLoader());
+            return ClassUtils.getClass(Thread.currentThread().getContextClassLoader(), value, true);
         } catch (ClassNotFoundException ex) {
             throw new UnexpectedException(ex);
         }
