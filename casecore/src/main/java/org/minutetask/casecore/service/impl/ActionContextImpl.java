@@ -1,4 +1,4 @@
-package org.minutetask.casecore;
+package org.minutetask.casecore.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,20 +20,25 @@ package org.minutetask.casecore;
  * =========================LICENSE_END==================================
  */
 
-public interface ActionContext {
-    public boolean isRetryOnFailure();
+import org.minutetask.casecore.ActionContext;
 
-    public void setRetryOnFailure(boolean retryOnFailure);
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-    public int getRetryDelay();
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public class ActionContextImpl implements ActionContext {
+    private boolean retryOnFailure;
 
-    public void setRetryDelay(int retryDelay);
+    private int retryDelay;
 
-    //
+    private int retryCount;
 
-    public int getRetryCount();
+    private Class<?> lastExceptionClass;
 
-    public Class<?> getLastExceptionClass();
-
-    public String getLastExceptionMessage();
+    private String lastExceptionMessage;
 }
