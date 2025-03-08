@@ -40,7 +40,7 @@ public class BuildFlowImpl implements BuildFlow {
     @Override
     public void run(Long caseId) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
-        log.info("build started [caseId = {}, projectId = {}]", buildCase.getCaseId(), buildCase.getProjectId());
+        log.info("build started [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         log.info("sending compileProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         buildFlow.compileProject(caseId);
@@ -49,7 +49,7 @@ public class BuildFlowImpl implements BuildFlow {
     @Override
     public void compileProject(Long caseId) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
-        log.info("compiling project [caseId = {}, projectId = {}]", buildCase.getCaseId(), buildCase.getProjectId());
+        log.info("compiling project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         log.info("sending packageProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         buildFlow.packageProject(caseId);
@@ -58,7 +58,7 @@ public class BuildFlowImpl implements BuildFlow {
     @Override
     public void packageProject(Long caseId) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
-        log.info("package project [caseId = {}, projectId = {}]", buildCase.getCaseId(), buildCase.getProjectId());
+        log.info("package project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         log.info("sending deployProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         buildFlow.deployProject(caseId);
@@ -67,11 +67,11 @@ public class BuildFlowImpl implements BuildFlow {
     @Override
     public void deployProject(Long caseId) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
-        log.info("deploying project [caseId = {}, projectId = {}]", buildCase.getCaseId(), buildCase.getProjectId());
+        log.info("deploying project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         buildCase.setClosed(true);
         useCaseManager.saveUseCase(buildCase);
         //
-        log.info("build finished [caseId = {}, projectId = {}]", buildCase.getCaseId(), buildCase.getProjectId());
+        log.info("build finished [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
     }
 }
