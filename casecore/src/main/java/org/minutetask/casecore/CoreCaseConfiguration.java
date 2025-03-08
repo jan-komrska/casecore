@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 @EntityScan
 @EnableJpaRepositories
+@EnableScheduling
 @ComponentScan(basePackages = "org.minutetask.casecore", nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 public class CoreCaseConfiguration {
     @Bean("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")

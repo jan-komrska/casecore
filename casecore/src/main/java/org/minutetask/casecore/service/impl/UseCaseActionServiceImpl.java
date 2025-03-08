@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.minutetask.casecore.exception.UnexpectedException;
@@ -59,6 +60,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     public UseCaseActionEntity newAction(UseCaseEntity useCase) {
         UseCaseActionEntity action = new UseCaseActionEntity();
         action.setUseCase(useCase);
+        action.setActive(false);
         action.setClosed(false);
         action.setCreatedDate(LocalDateTime.now());
         return action;
@@ -99,6 +101,10 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
             action.setId(null);
         }
         return action;
+    }
+
+    public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate) {
+        return ListUtils.emptyIfNull(useCaseActionRepository.findScheduledActions(targetDate));
     }
 
     //

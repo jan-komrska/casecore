@@ -50,7 +50,7 @@ import lombok.ToString;
 
 @Entity
 @Table(name = "cc_usecaseaction", indexes = { //
-        @Index(name = "ccix_usecaseaction_scheduler", columnList = "closed, scheduled_date", unique = false) //
+        @Index(name = "ccix_usecaseaction_scheduler", columnList = "scheduled_date", unique = false) //
 })
 @Getter
 @Setter
@@ -77,6 +77,9 @@ public class UseCaseActionEntity {
     @Lob
     @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = false;
 
     @Column(name = "closed", nullable = false)
     private boolean closed = false;

@@ -20,10 +20,16 @@ package org.minutetask.casecore.jpa.repository;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UseCaseActionRepository extends JpaRepository<UseCaseActionEntity, Long> {
+    @Query("SELECT action FROM UseCaseActionEntity action WHERE (action.scheduledDate<=?1)")
+    public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate);
 }

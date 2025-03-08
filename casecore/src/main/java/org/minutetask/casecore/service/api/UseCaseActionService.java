@@ -21,6 +21,8 @@ package org.minutetask.casecore.service.api;
  */
 
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
@@ -35,6 +37,8 @@ public interface UseCaseActionService {
     public UseCaseActionEntity saveAction(UseCaseActionEntity action);
 
     public UseCaseActionEntity deleteAction(UseCaseActionEntity action);
+
+    public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate);
 
     //
 
