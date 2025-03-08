@@ -184,11 +184,6 @@ public class UseCaseToolkit {
         }
     }
 
-    public Method getImplementationMethod(Class<?> serviceClass, Method method) {
-        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
-        return MethodUtils.getMatchingMethod(serviceClass, method.getName(), parameterTypes);
-    }
-
     public KeyDto getUseCaseKey(Method method, Object[] args) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         parameterAnnotations = ArrayUtils.nullToEmpty(parameterAnnotations, Annotation[][].class);
@@ -245,6 +240,11 @@ public class UseCaseToolkit {
         invocation.setServiceClass(literalService.getClassFromId(serviceClassId));
         //
         return invocation;
+    }
+
+    public Method getImplementationMethod(Class<?> serviceClass, Method method) {
+        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
+        return MethodUtils.getMatchingMethod(serviceClass, method.getName(), parameterTypes);
     }
 
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
