@@ -35,6 +35,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
+import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
 import org.minutetask.casecore.exception.BadRequestException;
@@ -200,8 +201,20 @@ public class UseCaseToolkit {
         return null;
     }
 
+    private Object[] prepareActionArgs(Object[] args) {
+        args = ArrayUtils.clone(ArrayUtils.nullToEmpty(args));
+        for (int index = 0; index < args.length; index++) {
+            if (args[index] instanceof ActionContext) {
+                args[index] = null;
+            }
+        }
+        return args;
+    }
+
     @Transactional
     public UseCaseActionEntity newAction(Method method, Object[] args) {
+        args = prepareActionArgs(args);
+        //
         Long useCaseId = getUseCaseId(method, args);
         KeyDto useCaseKey = getUseCaseKey(method, args);
         //
