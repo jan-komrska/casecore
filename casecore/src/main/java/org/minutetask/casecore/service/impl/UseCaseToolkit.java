@@ -24,6 +24,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -229,6 +230,37 @@ public class UseCaseToolkit {
         //
         if (useCaseActionService.isPersistent(useCaseAction)) {
             useCaseAction = useCaseActionService.persistAction(useCaseAction);
+        }
+        //
+        return useCaseAction;
+    }
+
+    public UseCaseActionEntity finishAction(UseCaseActionEntity useCaseAction) {
+        useCaseAction.setActive(false);
+        useCaseAction.setClosed(true);
+        useCaseAction.setScheduledDate(null);
+        //
+        if (useCaseActionService.isPersistent(useCaseAction)) {
+            useCaseAction = useCaseActionService.saveAction(useCaseAction);
+        }
+        //
+        return useCaseAction;
+    }
+
+    public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, Throwable throwable) {
+        useCaseActionService.setLastException(useCaseAction, throwable);
+        //
+        if (useCaseActionService.isAsync(useCaseAction)) {
+            useCaseAction.setActive(false);
+            useCaseAction.setClosed(false);
+            useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
+        } else {
+            useCaseAction.setActive(false);
+            useCaseAction.setClosed(true);
+        }
+        //
+        if (useCaseActionService.isPersistent(useCaseAction)) {
+            useCaseAction = useCaseActionService.saveAction(useCaseAction);
         }
         //
         return useCaseAction;

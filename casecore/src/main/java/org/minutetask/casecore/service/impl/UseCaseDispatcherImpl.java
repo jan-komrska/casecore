@@ -21,9 +21,7 @@ package org.minutetask.casecore.service.impl;
  */
 
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
@@ -32,11 +30,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import jakarta.annotation.PostConstruct;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
@@ -51,65 +44,25 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Autowired
     private UseCaseToolkit useCaseToolkit;
 
-    @Autowired
-    private PlatformTransactionManager platformTransactionManager;
-
-    private TransactionTemplate transactionTemplate;
-
     //
-
-    @PostConstruct
-    public void postConstruct() {
-        transactionTemplate = new TransactionTemplate(platformTransactionManager);
-        transactionTemplate.setPropagationBehavior(Propagation.REQUIRED.value());
-    }
 
     public Object invokeImpl(UseCaseActionEntity action) throws Exception {
         Class<?> serviceClass = useCaseActionService.getServiceClass(action);
         Method contractMethod = useCaseActionService.getMethod(action);
         Method serviceMethod = useCaseToolkit.getImplementationMethod(serviceClass, contractMethod);
         //
-        Object[] args = ArrayUtils.clone(ArrayUtils.nullToEmpty(useCaseActionService.getArgs(action)));
+        Object[] args = useCaseActionService.getArgs(action);
         useCaseToolkit.setUseCaseId(serviceMethod, args, action.getUseCase().getId());
         //
         Object result;
         try {
             result = useCaseToolkit.executeService(serviceClass, serviceMethod, args);
         } catch (Exception ex) {
-            if (useCaseActionService.isPersistent(action)) {
-                transactionTemplate.execute((status) -> {
-                    UseCaseActionEntity theAction = useCaseActionService.getAction(action.getId());
-                    useCaseActionService.setLastException(theAction, ex);
-                    //
-                    if (useCaseActionService.isAsync(theAction)) {
-                        theAction.setActive(false);
-                        theAction.setClosed(false);
-                        theAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
-                    } else {
-                        theAction.setActive(false);
-                        theAction.setClosed(true);
-                    }
-                    //
-                    theAction = useCaseActionService.saveAction(theAction);
-                    return theAction.getId();
-                });
-            }
-            //
+            action = useCaseToolkit.interruptAction(action, ex);
             return useCaseToolkit.rethrowException(ex);
         }
         //
-        if (useCaseActionService.isPersistent(action)) {
-            transactionTemplate.execute((status) -> {
-                UseCaseActionEntity theAction = useCaseActionService.getAction(action.getId());
-                theAction.setActive(false);
-                theAction.setClosed(true);
-                theAction.setScheduledDate(null);
-                theAction = useCaseActionService.saveAction(theAction);
-                //
-                return theAction.getId();
-            });
-        }
-        //
+        action = useCaseToolkit.finishAction(action);
         return result;
     }
 
