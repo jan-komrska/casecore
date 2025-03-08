@@ -101,6 +101,7 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             transactionTemplate.execute((status) -> {
                 UseCaseActionEntity useCaseAction = useCaseActionService.getAction(actionId);
                 useCaseAction.setClosed(true);
+                useCaseAction.setScheduledDate(null);
                 useCaseAction = useCaseActionService.saveAction(useCaseAction);
                 //
                 return useCaseAction.getId();

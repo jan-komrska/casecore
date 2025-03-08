@@ -50,7 +50,7 @@ import lombok.ToString;
 
 @Entity
 @Table(name = "cc_usecaseaction", indexes = { //
-        @Index(name = "ccix_usecaseaction_scheduler", columnList = "scheduled_date", unique = false) //
+        @Index(name = "ccix_usecaseaction_scheduler", columnList = "closed, scheduled_date", unique = false) //
 })
 @Getter
 @Setter
