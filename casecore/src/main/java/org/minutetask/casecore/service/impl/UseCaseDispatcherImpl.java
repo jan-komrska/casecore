@@ -76,7 +76,7 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             actionId = transactionTemplate.execute((status) -> {
                 UseCaseEntity parentUseCase = useCaseService.getUseCase(invocation.getUseCaseId());
                 //
-                UseCaseActionEntity useCaseAction = useCaseActionService.newAction(parentUseCase);
+                UseCaseActionEntity useCaseAction = useCaseActionService.newAction(parentUseCase, true);
                 useCaseActionService.setActionServiceClass(useCaseAction, invocation.getServiceClass());
                 useCaseActionService.setActionMethod(useCaseAction, method);
                 useCaseActionService.setActionArgs(useCaseAction, args);

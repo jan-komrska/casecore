@@ -57,10 +57,10 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public UseCaseActionEntity newAction(UseCaseEntity useCase) {
+    public UseCaseActionEntity newAction(UseCaseEntity useCase, boolean active) {
         UseCaseActionEntity action = new UseCaseActionEntity();
         action.setUseCase(useCase);
-        action.setActive(false);
+        action.setActive(active);
         action.setClosed(false);
         action.setCreatedDate(LocalDateTime.now());
         return action;

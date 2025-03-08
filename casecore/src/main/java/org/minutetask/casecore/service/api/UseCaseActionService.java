@@ -28,7 +28,7 @@ import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 
 public interface UseCaseActionService {
-    public UseCaseActionEntity newAction(UseCaseEntity useCase);
+    public UseCaseActionEntity newAction(UseCaseEntity useCase, boolean active);
 
     public UseCaseActionEntity getAction(Long id);
 
