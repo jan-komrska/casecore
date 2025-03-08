@@ -259,7 +259,8 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public void setRetryCount(UseCaseActionEntity action, int retryCount) {
-        action.getUseCaseActionData().setRetryCount(retryCount);
+    public void incRetryCount(UseCaseActionEntity action) {
+        int retryCount = action.getUseCaseActionData().getRetryCount();
+        action.getUseCaseActionData().setRetryCount(retryCount + 1);
     }
 }

@@ -51,20 +51,25 @@ public class UseCaseActionScheduler {
     public void checkScheduledActions() {
         List<UseCaseActionEntity> scheduledActions = useCaseActionService.findScheduledActions(LocalDateTime.now());
         for (UseCaseActionEntity scheduledAction : scheduledActions) {
-            boolean invokeAction = !scheduledAction.isActive() && !scheduledAction.isClosed() && useCaseActionService.isAsync(scheduledAction);
+            boolean invokeAction = !scheduledAction.isActive() && !scheduledAction.isClosed() //
+                    && useCaseActionService.isAsync(scheduledAction);
             if (invokeAction) {
                 scheduledAction.setActive(true);
                 scheduledAction.setScheduledDate(null);
+                //
+                useCaseActionService.incRetryCount(scheduledAction);
+                //
+                scheduledAction = useCaseActionService.saveAction(scheduledAction);
+                //
+                try {
+                    useCaseDispatcher.invoke(scheduledAction);
+                } catch (Throwable throwable) {
+                    log.log(Level.SEVERE, "Unexpected exception:", throwable);
+                }
             } else {
                 scheduledAction.setScheduledDate(null);
-            }
-            //
-            scheduledAction = useCaseActionService.saveAction(scheduledAction);
-            //
-            try {
-                useCaseDispatcher.invoke(scheduledAction);
-            } catch (Throwable throwable) {
-                log.log(Level.SEVERE, "Unexpected exception:", throwable);
+                //
+                scheduledAction = useCaseActionService.saveAction(scheduledAction);
             }
         }
     }

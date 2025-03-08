@@ -68,5 +68,5 @@ public interface UseCaseActionService {
 
     public int getRetryCount(UseCaseActionEntity action);
 
-    public void setRetryCount(UseCaseActionEntity action, int retryCount);
+    public void incRetryCount(UseCaseActionEntity action);
 }
