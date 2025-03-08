@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BuildFlowImpl implements BuildFlow {
+    private boolean ok = false;
+
     @Autowired
     private UseCaseManager useCaseManager;
 
@@ -57,6 +59,11 @@ public class BuildFlowImpl implements BuildFlow {
 
     @Override
     public void packageProject(Long caseId) {
+        if (!ok) {
+            ok = true;
+            throw new IllegalStateException();
+        }
+        //
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
         log.info("package project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //

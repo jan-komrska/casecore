@@ -22,9 +22,11 @@ package org.minutetask.casecore.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.service.api.UseCaseActionService;
+import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -32,18 +34,38 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.java.Log;
+
+@Log
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseActionScheduler {
     @Autowired
     private UseCaseActionService useCaseActionService;
 
+    @Autowired
+    private UseCaseDispatcher useCaseDispatcher;
+
     @Scheduled(fixedRateString = "${case-core.use-case-action.check-interval:5000}")
     @Transactional
     public void checkScheduledActions() {
         List<UseCaseActionEntity> scheduledActions = useCaseActionService.findScheduledActions(LocalDateTime.now());
         for (UseCaseActionEntity scheduledAction : scheduledActions) {
-            scheduledAction.setScheduledDate(null);
+            boolean invokeAction = !scheduledAction.isActive() && !scheduledAction.isClosed() && useCaseActionService.isAsync(scheduledAction);
+            if (invokeAction) {
+                scheduledAction.setActive(true);
+                scheduledAction.setScheduledDate(null);
+            } else {
+                scheduledAction.setScheduledDate(null);
+            }
+            //
+            scheduledAction = useCaseActionService.saveAction(scheduledAction);
+            //
+            try {
+                useCaseDispatcher.invoke(scheduledAction);
+            } catch (Throwable throwable) {
+                log.log(Level.SEVERE, "Unexpected exception:", throwable);
+            }
         }
     }
 }
