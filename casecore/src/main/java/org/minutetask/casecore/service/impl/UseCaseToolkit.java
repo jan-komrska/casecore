@@ -87,7 +87,7 @@ public class UseCaseToolkit {
 
     //
 
-    private <Result> Result rethrowException(Throwable throwable) throws Exception {
+    public <Result> Result rethrowException(Throwable throwable) throws Exception {
         if (throwable instanceof Exception exception) {
             throw exception;
         } else if (throwable instanceof Error error) {

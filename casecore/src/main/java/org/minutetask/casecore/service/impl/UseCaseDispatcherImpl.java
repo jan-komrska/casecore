@@ -21,10 +21,12 @@ package org.minutetask.casecore.service.impl;
  */
 
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import org.minutetask.casecore.service.api.LiteralService;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.minutetask.casecore.service.api.UseCaseService;
@@ -46,6 +48,9 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
+
+    @Autowired
+    private LiteralService literalService;
 
     @Autowired
     private UseCaseService useCaseService;
@@ -95,7 +100,33 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         Object[] newArgs = ArrayUtils.clone(ArrayUtils.nullToEmpty(args));
         useCaseToolkit.setUseCaseId(serviceMethod, newArgs, invocation.getUseCaseId());
         //
-        Object result = useCaseToolkit.executeService(invocation.getServiceClass(), method, newArgs);
+        Object result;
+        try {
+            result = useCaseToolkit.executeService(invocation.getServiceClass(), method, newArgs);
+        } catch (Exception ex) {
+            if (invocation.isPersistent()) {
+                transactionTemplate.execute((status) -> {
+                    UseCaseActionEntity useCaseAction = useCaseActionService.getAction(actionId);
+                    if (invocation.isAsync()) {
+                        useCaseAction.setActive(false);
+                        useCaseAction.setClosed(false);
+                        useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
+                    } else {
+                        useCaseAction.setActive(false);
+                        useCaseAction.setClosed(true);
+                    }
+                    //
+                    useCaseAction.getUseCaseActionData().setLastExceptionClassId(literalService.getIdFromClass(ex.getClass()));
+                    useCaseAction.getUseCaseActionData().setLastExceptionMessage(ex.getMessage());
+                    //
+                    useCaseAction = useCaseActionService.saveAction(useCaseAction);
+                    //
+                    return useCaseAction.getId();
+                });
+            }
+            //
+            return useCaseToolkit.rethrowException(ex);
+        }
         //
         if (invocation.isPersistent()) {
             transactionTemplate.execute((status) -> {

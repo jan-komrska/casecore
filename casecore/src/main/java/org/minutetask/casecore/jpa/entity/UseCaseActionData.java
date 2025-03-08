@@ -48,6 +48,10 @@ public class UseCaseActionData {
     @Getter(AccessLevel.NONE)
     private List<Object> parameters;
 
+    private Long lastExceptionClassId;
+
+    private String lastExceptionMessage;
+
     //
 
     public List<Long> getParameterClassIds() {
