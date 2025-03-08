@@ -238,11 +238,16 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setLastException(UseCaseActionEntity action, Throwable throwable) {
-        Long lastExceptionClassId = literalService.getIdFromClass(throwable.getClass());
-        String lastExceptionMessage = throwable.getMessage();
-        //
-        action.getUseCaseActionData().setLastExceptionClassId(lastExceptionClassId);
-        action.getUseCaseActionData().setLastExceptionMessage(lastExceptionMessage);
+        if (throwable != null) {
+            Long lastExceptionClassId = literalService.getIdFromClass(throwable.getClass());
+            String lastExceptionMessage = throwable.getMessage();
+            //
+            action.getUseCaseActionData().setLastExceptionClassId(lastExceptionClassId);
+            action.getUseCaseActionData().setLastExceptionMessage(lastExceptionMessage);
+        } else {
+            action.getUseCaseActionData().setLastExceptionClassId(null);
+            action.getUseCaseActionData().setLastExceptionMessage(null);
+        }
     }
 
     @Override

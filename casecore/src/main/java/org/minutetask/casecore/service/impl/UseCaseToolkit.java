@@ -253,6 +253,8 @@ public class UseCaseToolkit {
         useCaseAction.setClosed(true);
         useCaseAction.setScheduledDate(null);
         //
+        useCaseActionService.setLastException(useCaseAction, null);
+        //
         if (useCaseActionService.isPersistent(useCaseAction)) {
             useCaseAction = useCaseActionService.saveAction(useCaseAction);
         }
@@ -261,8 +263,6 @@ public class UseCaseToolkit {
     }
 
     public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, Throwable throwable) {
-        useCaseActionService.setLastException(useCaseAction, throwable);
-        //
         if (useCaseActionService.isAsync(useCaseAction)) {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(false);
@@ -271,6 +271,8 @@ public class UseCaseToolkit {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(true);
         }
+        //
+        useCaseActionService.setLastException(useCaseAction, throwable);
         //
         if (useCaseActionService.isPersistent(useCaseAction)) {
             useCaseAction = useCaseActionService.saveAction(useCaseAction);
