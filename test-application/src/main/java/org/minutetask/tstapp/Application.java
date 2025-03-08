@@ -94,7 +94,7 @@ public class Application {
         buildCase.setFlow(BuildFlowImpl.class);
         buildCase = useCaseManager.saveUseCase(buildCase);
         //
-        buildFlow.run(buildCase.getCaseId());
+        buildFlow.run(buildCase.getCaseId(), null);
     }
 
     @Bean

@@ -22,6 +22,7 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 
+import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
@@ -54,12 +55,15 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         Object[] args = useCaseActionService.getArgs(action);
         useCaseToolkit.setUseCaseId(serviceMethod, args, action.getUseCase().getId());
         //
+        ActionContext actionContext = useCaseToolkit.newActionContext(action);
+        useCaseToolkit.setActionContext(serviceMethod, args, actionContext);
+        //
         Object result;
         try {
             result = useCaseToolkit.executeService(serviceClass, serviceMethod, args);
-        } catch (Exception ex) {
-            action = useCaseToolkit.interruptAction(action, ex);
-            return useCaseToolkit.rethrowException(ex);
+        } catch (Exception exception) {
+            action = useCaseToolkit.interruptAction(action, actionContext, exception);
+            return useCaseToolkit.rethrowException(exception);
         }
         //
         action = useCaseToolkit.finishAction(action);

@@ -20,6 +20,7 @@ package org.minutetask.tstapp.process;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.UseCaseManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -30,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BuildFlowImpl implements BuildFlow {
-    private boolean ok = false;
-
     @Autowired
     private UseCaseManager useCaseManager;
 
@@ -40,41 +39,46 @@ public class BuildFlowImpl implements BuildFlow {
     private BuildFlow buildFlow;
 
     @Override
-    public void run(Long caseId) {
+    public void run(Long caseId, ActionContext actionContext) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
         log.info("build started [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         log.info("sending compileProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
-        buildFlow.compileProject(caseId);
+        buildFlow.compileProject(caseId, null);
     }
 
     @Override
-    public void compileProject(Long caseId) {
+    public void compileProject(Long caseId, ActionContext actionContext) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
         log.info("compiling project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
         log.info("sending packageProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
-        buildFlow.packageProject(caseId);
+        buildFlow.packageProject(caseId, null);
     }
 
     @Override
-    public void packageProject(Long caseId) {
-        if (!ok) {
-            ok = true;
-            throw new IllegalStateException();
-        }
-        //
+    public void packageProject(Long caseId, ActionContext actionContext) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
         log.info("package project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
         //
+        if (actionContext.getRetryCount() == 0) {
+            actionContext.setRetryOnFailureDelay(10);
+            throw new IllegalStateException();
+        }
+        //
         log.info("sending deployProject request [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
-        buildFlow.deployProject(caseId);
+        buildFlow.deployProject(caseId, null);
     }
 
     @Override
-    public void deployProject(Long caseId) {
+    public void deployProject(Long caseId, ActionContext actionContext) {
         BuildCase buildCase = useCaseManager.getUseCase(caseId, BuildCase.class);
         log.info("deploying project [caseId={}, projectId={}]", buildCase.getCaseId(), buildCase.getProjectId());
+        //
+        if (actionContext.getRetryCount() == 0) {
+            actionContext.setRetryOnFailureDelay(10);
+            throw new IllegalStateException();
+        }
         //
         buildCase.setClosed(true);
         useCaseManager.saveUseCase(buildCase);

@@ -193,6 +193,16 @@ public class UseCaseToolkit {
         return null;
     }
 
+    public void setActionContext(Method method, Object[] args, ActionContext actionContext) {
+        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
+        for (int index = 0; index < parameterTypes.length; index++) {
+            Class<?> parameterType = parameterTypes[index];
+            if (ActionContext.class.equals(parameterType)) {
+                args[index] = actionContext;
+            }
+        }
+    }
+
     private Object[] prepareActionArgs(Object[] args) {
         args = ArrayUtils.clone(ArrayUtils.nullToEmpty(args));
         for (int index = 0; index < args.length; index++) {
@@ -254,11 +264,11 @@ public class UseCaseToolkit {
         return useCaseAction;
     }
 
-    public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, Throwable throwable) {
-        if (useCaseActionService.isAsync(useCaseAction)) {
+    public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, ActionContext actionContext, Throwable throwable) {
+        if (useCaseActionService.isAsync(useCaseAction) && (actionContext.getRetryOnFailureDelay() >= 0)) {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(false);
-            useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
+            useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(actionContext.getRetryOnFailureDelay()));
         } else {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(true);
