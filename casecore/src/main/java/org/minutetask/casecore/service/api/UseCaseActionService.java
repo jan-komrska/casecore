@@ -53,4 +53,14 @@ public interface UseCaseActionService {
     public Object[] getActionArgs(UseCaseActionEntity action);
 
     public void setActionArgs(UseCaseActionEntity action, Object[] args);
+
+    public Class<?> getLastExceptionClass(UseCaseActionEntity action);
+
+    public String getLastExceptionMessage(UseCaseActionEntity action);
+
+    public void setLastException(UseCaseActionEntity action, Throwable throwable);
+
+    public int getRetryCount(UseCaseActionEntity action);
+
+    public void setRetryCount(UseCaseActionEntity action, int retryCount);
 }

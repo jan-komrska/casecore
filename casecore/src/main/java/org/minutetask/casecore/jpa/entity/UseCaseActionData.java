@@ -48,7 +48,8 @@ public class UseCaseActionData {
     @Getter(AccessLevel.NONE)
     private List<Object> parameters;
 
-    private Long retryCount;
+    @Setter(AccessLevel.NONE)
+    private Integer retryCount;
 
     private Long lastExceptionClassId;
 
@@ -69,6 +70,14 @@ public class UseCaseActionData {
             parameters = new ArrayList<Object>();
         }
         return parameters;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        if (retryCount != null) {
+            this.retryCount = (retryCount != 0) ? retryCount : null;
+        } else {
+            this.retryCount = null;
+        }
     }
 
     public void setLastExceptionMessage(String lastExceptionMessage) {

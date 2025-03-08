@@ -178,4 +178,40 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         //
         action.getUseCaseActionData().setParameters(parameters);
     }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public Class<?> getLastExceptionClass(UseCaseActionEntity action) {
+        Long lastExceptionClassId = action.getUseCaseActionData().getLastExceptionClassId();
+        return literalService.getClassFromId(lastExceptionClassId);
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public String getLastExceptionMessage(UseCaseActionEntity action) {
+        return action.getUseCaseActionData().getLastExceptionMessage();
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public void setLastException(UseCaseActionEntity action, Throwable throwable) {
+        Long lastExceptionClassId = literalService.getIdFromClass(throwable.getClass());
+        String lastExceptionMessage = throwable.getMessage();
+        //
+        action.getUseCaseActionData().setLastExceptionClassId(lastExceptionClassId);
+        action.getUseCaseActionData().setLastExceptionMessage(lastExceptionMessage);
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public int getRetryCount(UseCaseActionEntity action) {
+        Integer retryCount = action.getUseCaseActionData().getRetryCount();
+        return (retryCount != null) ? retryCount : 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public void setRetryCount(UseCaseActionEntity action, int retryCount) {
+        action.getUseCaseActionData().setRetryCount(retryCount);
+    }
 }
