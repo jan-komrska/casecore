@@ -38,11 +38,14 @@ import org.minutetask.casecore.jpa.repository.UseCaseActionRepository;
 import org.minutetask.casecore.service.api.LiteralService;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
 @Service
@@ -53,6 +56,10 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Autowired
     private UseCaseActionRepository useCaseActionRepository;
+
+    @Qualifier("org.minutetask.casecore.CoreCaseConfiguration::objectMapper")
+    @Autowired
+    private ObjectMapper objectMapper;
 
     //
 
@@ -177,7 +184,15 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Object[] getArgs(UseCaseActionEntity action) {
-        return action.getUseCaseActionData().getParameters().toArray();
+        Class<?>[] parameterClasses = action.getUseCaseActionData().getParameterClassIds(). //
+                stream().map(literalService::getClassFromId).toArray(Class<?>[]::new);
+        Object[] parameters = action.getUseCaseActionData().getParameters().toArray();
+        //
+        for (int index = 0; index < parameterClasses.length; index++) {
+            parameters[index] = objectMapper.convertValue(parameters[index], parameterClasses[index]);
+        }
+        //
+        return parameters;
     }
 
     @Override
