@@ -22,6 +22,10 @@ package org.minutetask.casecore.service.api;
 
 import java.lang.reflect.Method;
 
+import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
+
 public interface UseCaseDispatcher {
+    public Object invoke(UseCaseActionEntity action) throws Throwable;
+
     public Object invoke(Method method, Object args[]) throws Throwable;
 }

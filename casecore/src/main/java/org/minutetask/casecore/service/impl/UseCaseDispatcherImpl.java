@@ -67,16 +67,21 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     }
 
     @Override
-    public Object invoke(Method method, Object[] args) throws Exception {
-        UseCaseActionEntity action = useCaseToolkit.newAction(method, args);
+    public Object invoke(UseCaseActionEntity action) throws Throwable {
+        Method contractMethod = useCaseActionService.getMethod(action);
         //
         if (useCaseActionService.isAsync(action)) {
             String taskExecutor = useCaseActionService.getTaskExecutor(action);
-            return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
+            return useCaseToolkit.executeAsync(taskExecutor, contractMethod.getReturnType(), () -> {
                 return self.invokeImpl(action);
             });
         } else {
             return self.invokeImpl(action);
         }
+    }
+
+    @Override
+    public Object invoke(Method method, Object[] args) throws Throwable {
+        return invoke(useCaseToolkit.newAction(method, args));
     }
 }
