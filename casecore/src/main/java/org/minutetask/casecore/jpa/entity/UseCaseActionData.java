@@ -48,8 +48,18 @@ public class UseCaseActionData {
     @Getter(AccessLevel.NONE)
     private List<Object> parameters;
 
+    //
+
+    private boolean persistent;
+
+    private boolean async;
+
     @Setter(AccessLevel.NONE)
-    private Integer retryCount;
+    private String taskExecutor;
+
+    //
+
+    private int retryCount;
 
     private Long lastExceptionClassId;
 
@@ -72,24 +82,23 @@ public class UseCaseActionData {
         return parameters;
     }
 
-    public void setRetryCount(Integer retryCount) {
-        if (retryCount != null) {
-            this.retryCount = (retryCount != 0) ? retryCount : null;
-        } else {
-            this.retryCount = null;
-        }
-    }
-
     public void setLastExceptionMessage(String lastExceptionMessage) {
         this.lastExceptionMessage = (StringUtils.isNotEmpty(lastExceptionMessage)) ? lastExceptionMessage : null;
     }
+
+    public void setTaskExecutor(String taskExecutor) {
+        this.taskExecutor = (StringUtils.isNotEmpty(taskExecutor)) ? taskExecutor : null;
+    }
+
+    //
 
     @JsonIgnore
     public boolean isEmpty() {
         return (serviceClassId == null) //
                 && (methodClassId == null) && StringUtils.isEmpty(methodName) //
                 && getParameterClassIds().isEmpty() && getParameters().isEmpty() //
-                && (retryCount == null) //
+                && !persistent && !async && (taskExecutor == null) //
+                && (retryCount == 0) //
                 && (lastExceptionClassId == null) && (lastExceptionMessage == null);
     }
 }

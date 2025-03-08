@@ -36,13 +36,14 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hibernate.resource.beans.container.internal.NoSuchBeanException;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
-import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.BadRequestException;
 import org.minutetask.casecore.exception.ConflictException;
 import org.minutetask.casecore.exception.NotFoundException;
 import org.minutetask.casecore.exception.UnexpectedException;
+import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.service.api.LiteralService;
+import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseService;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,13 +54,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
@@ -84,6 +84,9 @@ public class UseCaseToolkit {
 
     @Autowired
     private UseCaseService useCaseService;
+
+    @Autowired
+    private UseCaseActionService useCaseActionService;
 
     //
 
@@ -132,19 +135,6 @@ public class UseCaseToolkit {
     public static class KeyDto {
         private String type;
         private String value;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @ToString
-    public static class Invocation {
-        private Long useCaseId;
-        private Class<?> serviceClass;
-
-        private boolean persistent;
-        private boolean async;
-        private String taskExecutor;
     }
 
     public Long getUseCaseId(Method method, Object[] args) {
@@ -209,14 +199,8 @@ public class UseCaseToolkit {
         return null;
     }
 
-    public Invocation getInvocation(Method method, Object[] args) {
-        Invocation invocation = new Invocation();
-        //
-        MethodRef methodRef = method.getAnnotation(MethodRef.class);
-        invocation.setAsync((methodRef != null) ? methodRef.async() : false);
-        invocation.setPersistent((methodRef != null) ? methodRef.persistent() : false);
-        invocation.setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
-        //
+    @Transactional
+    public UseCaseActionEntity newAction(Method method, Object[] args) {
         Long useCaseId = getUseCaseId(method, args);
         KeyDto useCaseKey = getUseCaseKey(method, args);
         //
@@ -229,17 +213,25 @@ public class UseCaseToolkit {
             throw new BadRequestException();
         }
         //
-        if (!useCase.isClosed()) {
-            invocation.setUseCaseId(useCase.getId());
-        } else {
+        if (useCase.isClosed()) {
             throw new ConflictException();
         }
         //
+        UseCaseActionEntity useCaseAction = useCaseActionService.newAction(useCase, true);
+        //
         Long contractId = literalService.getIdFromClass(method.getDeclaringClass());
         Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
-        invocation.setServiceClass(literalService.getClassFromId(serviceClassId));
+        Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
         //
-        return invocation;
+        useCaseActionService.setServiceClass(useCaseAction, serviceClass);
+        useCaseActionService.setMethod(useCaseAction, method);
+        useCaseActionService.setArgs(useCaseAction, args);
+        //
+        if (useCaseActionService.isPersistent(useCaseAction)) {
+            useCaseAction = useCaseActionService.persistAction(useCaseAction);
+        }
+        //
+        return useCaseAction;
     }
 
     public Method getImplementationMethod(Class<?> serviceClass, Method method) {

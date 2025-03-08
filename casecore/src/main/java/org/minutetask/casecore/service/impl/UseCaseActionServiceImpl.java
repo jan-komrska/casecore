@@ -30,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.UnexpectedException;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
@@ -111,21 +112,21 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public Class<?> getActionServiceClass(UseCaseActionEntity action) {
+    public Class<?> getServiceClass(UseCaseActionEntity action) {
         Long serviceClassId = action.getUseCaseActionData().getServiceClassId();
         return literalService.getClassFromId(serviceClassId);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public void setActionServiceClass(UseCaseActionEntity action, Class<?> serviceClass) {
+    public void setServiceClass(UseCaseActionEntity action, Class<?> serviceClass) {
         Long serviceClassId = literalService.getIdFromClass(serviceClass);
         action.getUseCaseActionData().setServiceClassId(serviceClassId);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public Method getActionMethod(UseCaseActionEntity action) {
+    public Method getMethod(UseCaseActionEntity action) {
         String methodName = action.getUseCaseActionData().getMethodName();
         if (StringUtils.isNotEmpty(methodName)) {
             Long methodClassId = action.getUseCaseActionData().getMethodClassId();
@@ -146,7 +147,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public void setActionMethod(UseCaseActionEntity action, Method method) {
+    public void setMethod(UseCaseActionEntity action, Method method) {
         if (method != null) {
             Long methodClassId = literalService.getIdFromClass(method.getDeclaringClass());
             //
@@ -157,26 +158,53 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
             action.getUseCaseActionData().setMethodClassId(methodClassId);
             action.getUseCaseActionData().setMethodName(method.getName());
             action.getUseCaseActionData().setParameterClassIds(parameterClassIds);
+            //
+            MethodRef methodRef = method.getAnnotation(MethodRef.class);
+            action.getUseCaseActionData().setAsync((methodRef != null) ? methodRef.async() : false);
+            action.getUseCaseActionData().setPersistent((methodRef != null) ? methodRef.persistent() : false);
+            action.getUseCaseActionData().setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
         } else {
             action.getUseCaseActionData().setMethodClassId(null);
             action.getUseCaseActionData().setMethodName(null);
             action.getUseCaseActionData().setParameterClassIds(null);
+            //
+            action.getUseCaseActionData().setAsync(false);
+            action.getUseCaseActionData().setPersistent(false);
+            action.getUseCaseActionData().setTaskExecutor("");
         }
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public Object[] getActionArgs(UseCaseActionEntity action) {
+    public Object[] getArgs(UseCaseActionEntity action) {
         return action.getUseCaseActionData().getParameters().toArray();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public void setActionArgs(UseCaseActionEntity action, Object[] args) {
+    public void setArgs(UseCaseActionEntity action, Object[] args) {
         List<Object> parameters = new ArrayList<Object>();
         CollectionUtils.addAll(parameters, ArrayUtils.nullToEmpty(args));
         //
         action.getUseCaseActionData().setParameters(parameters);
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public boolean isPersistent(UseCaseActionEntity action) {
+        return action.getUseCaseActionData().isPersistent();
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public boolean isAsync(UseCaseActionEntity action) {
+        return action.getUseCaseActionData().isAsync();
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public String getTaskExecutor(UseCaseActionEntity action) {
+        return action.getUseCaseActionData().getTaskExecutor();
     }
 
     @Override

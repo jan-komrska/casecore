@@ -25,11 +25,8 @@ import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
-import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
-import org.minutetask.casecore.service.api.UseCaseService;
-import org.minutetask.casecore.service.impl.UseCaseToolkit.Invocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
@@ -47,9 +44,6 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     @Lazy
     @Autowired
     private UseCaseDispatcherImpl self;
-
-    @Autowired
-    private UseCaseService useCaseService;
 
     @Autowired
     private UseCaseActionService useCaseActionService;
@@ -70,66 +64,50 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         transactionTemplate.setPropagationBehavior(Propagation.REQUIRED.value());
     }
 
-    public Object invokeImpl(Invocation invocation, Method method, Object[] args) throws Exception {
-        final Long actionId;
+    public Object invokeImpl(UseCaseActionEntity useCaseAction) throws Exception {
+        Long actionId = useCaseAction.getId();
+        Class<?> serviceClass = useCaseActionService.getServiceClass(useCaseAction);
+        Method contractMethod = useCaseActionService.getMethod(useCaseAction);
+        Method serviceMethod = useCaseToolkit.getImplementationMethod(serviceClass, contractMethod);
         //
-        if (invocation.isPersistent()) {
-            actionId = transactionTemplate.execute((status) -> {
-                UseCaseEntity parentUseCase = useCaseService.getUseCase(invocation.getUseCaseId());
-                //
-                UseCaseActionEntity useCaseAction = useCaseActionService.newAction(parentUseCase, true);
-                useCaseActionService.setActionServiceClass(useCaseAction, invocation.getServiceClass());
-                useCaseActionService.setActionMethod(useCaseAction, method);
-                useCaseActionService.setActionArgs(useCaseAction, args);
-                //
-                useCaseAction = useCaseActionService.persistAction(useCaseAction);
-                parentUseCase.getUseCaseActions().add(useCaseAction);
-                //
-                return useCaseAction.getId();
-            });
-        } else {
-            actionId = null;
-        }
-        //
-        Method serviceMethod = useCaseToolkit.getImplementationMethod(invocation.getServiceClass(), method);
-        Object[] newArgs = ArrayUtils.clone(ArrayUtils.nullToEmpty(args));
-        useCaseToolkit.setUseCaseId(serviceMethod, newArgs, invocation.getUseCaseId());
+        Object[] newArgs = ArrayUtils.clone(ArrayUtils.nullToEmpty(useCaseActionService.getArgs(useCaseAction)));
+        useCaseToolkit.setUseCaseId(serviceMethod, newArgs, useCaseAction.getUseCase().getId());
         //
         Object result;
         try {
-            result = useCaseToolkit.executeService(invocation.getServiceClass(), method, newArgs);
+            result = useCaseToolkit.executeService(serviceClass, serviceMethod, newArgs);
         } catch (Exception ex) {
-            if (invocation.isPersistent()) {
+            if (useCaseActionService.isPersistent(useCaseAction)) {
                 transactionTemplate.execute((status) -> {
-                    UseCaseActionEntity useCaseAction = useCaseActionService.getAction(actionId);
-                    useCaseActionService.setLastException(useCaseAction, ex);
+                    UseCaseActionEntity action = useCaseActionService.getAction(actionId);
+                    useCaseActionService.setLastException(action, ex);
                     //
-                    if (invocation.isAsync()) {
-                        useCaseAction.setActive(false);
-                        useCaseAction.setClosed(false);
-                        useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(10));
+                    if (useCaseActionService.isAsync(action)) {
+                        action.setActive(false);
+                        action.setClosed(false);
+                        action.setScheduledDate(LocalDateTime.now().plusSeconds(10));
                     } else {
-                        useCaseAction.setActive(false);
-                        useCaseAction.setClosed(true);
+                        action.setActive(false);
+                        action.setClosed(true);
                     }
                     //
-                    useCaseAction = useCaseActionService.saveAction(useCaseAction);
-                    return useCaseAction.getId();
+                    action = useCaseActionService.saveAction(action);
+                    return action.getId();
                 });
             }
             //
             return useCaseToolkit.rethrowException(ex);
         }
         //
-        if (invocation.isPersistent()) {
+        if (useCaseActionService.isPersistent(useCaseAction)) {
             transactionTemplate.execute((status) -> {
-                UseCaseActionEntity useCaseAction = useCaseActionService.getAction(actionId);
-                useCaseAction.setActive(false);
-                useCaseAction.setClosed(true);
-                useCaseAction.setScheduledDate(null);
-                useCaseAction = useCaseActionService.saveAction(useCaseAction);
+                UseCaseActionEntity action = useCaseActionService.getAction(actionId);
+                action.setActive(false);
+                action.setClosed(true);
+                action.setScheduledDate(null);
+                action = useCaseActionService.saveAction(action);
                 //
-                return useCaseAction.getId();
+                return action.getId();
             });
         }
         //
@@ -138,14 +116,15 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(Method method, Object[] args) throws Exception {
-        Invocation invocation = useCaseToolkit.getInvocation(method, args);
+        UseCaseActionEntity useCaseAction = useCaseToolkit.newAction(method, args);
         //
-        if (invocation.isAsync()) {
-            return useCaseToolkit.executeAsync(invocation.getTaskExecutor(), method.getReturnType(), () -> {
-                return self.invokeImpl(invocation, method, args);
+        if (useCaseActionService.isAsync(useCaseAction)) {
+            String taskExecutor = useCaseActionService.getTaskExecutor(useCaseAction);
+            return useCaseToolkit.executeAsync(taskExecutor, method.getReturnType(), () -> {
+                return self.invokeImpl(useCaseAction);
             });
         } else {
-            return self.invokeImpl(invocation, method, args);
+            return self.invokeImpl(useCaseAction);
         }
     }
 }

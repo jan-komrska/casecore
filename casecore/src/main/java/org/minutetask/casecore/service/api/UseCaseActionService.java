@@ -42,17 +42,23 @@ public interface UseCaseActionService {
 
     //
 
-    public Class<?> getActionServiceClass(UseCaseActionEntity action);
+    public Class<?> getServiceClass(UseCaseActionEntity action);
 
-    public void setActionServiceClass(UseCaseActionEntity action, Class<?> serviceClass);
+    public void setServiceClass(UseCaseActionEntity action, Class<?> serviceClass);
 
-    public Method getActionMethod(UseCaseActionEntity action);
+    public Method getMethod(UseCaseActionEntity action);
 
-    public void setActionMethod(UseCaseActionEntity action, Method method);
+    public void setMethod(UseCaseActionEntity action, Method method);
 
-    public Object[] getActionArgs(UseCaseActionEntity action);
+    public Object[] getArgs(UseCaseActionEntity action);
 
-    public void setActionArgs(UseCaseActionEntity action, Object[] args);
+    public void setArgs(UseCaseActionEntity action, Object[] args);
+
+    public boolean isPersistent(UseCaseActionEntity action);
+
+    public boolean isAsync(UseCaseActionEntity action);
+
+    public String getTaskExecutor(UseCaseActionEntity action);
 
     public Class<?> getLastExceptionClass(UseCaseActionEntity action);
 
