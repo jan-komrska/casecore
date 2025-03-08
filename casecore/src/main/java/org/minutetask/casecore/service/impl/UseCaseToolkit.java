@@ -104,31 +104,9 @@ public class UseCaseToolkit {
         }
     }
 
-    private AsyncTaskExecutor getAsyncTaskExecutor(String executorName) {
-        if (StringUtils.isNotEmpty(executorName)) {
-            return applicationContext.getBean(executorName, AsyncTaskExecutor.class);
-        } else if (StringUtils.isNotEmpty(defaultExecutorName)) {
-            return applicationContext.getBean(defaultExecutorName, AsyncTaskExecutor.class);
-        } else if (internalExecutor != null) {
-            return internalExecutor;
-        } else {
-            synchronized (this) {
-                if (StringUtils.isEmpty(defaultExecutorName) && (internalExecutor == null)) {
-                    String[] executorNames = applicationContext.getBeanNamesForType(AsyncTaskExecutor.class);
-                    executorNames = ArrayUtils.nullToEmpty(executorNames);
-                    //
-                    if (executorNames.length == 1) {
-                        defaultExecutorName = executorNames[0];
-                    } else if (ArrayUtils.contains(executorNames, DEFAULT_TASK_EXECUTOR)) {
-                        defaultExecutorName = DEFAULT_TASK_EXECUTOR;
-                    } else {
-                        internalExecutor = new SimpleAsyncTaskExecutor();
-                    }
-                }
-            }
-            //
-            return getAsyncTaskExecutor(executorName);
-        }
+    public Method getImplementationMethod(Class<?> serviceClass, Method method) {
+        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
+        return MethodUtils.getMatchingMethod(serviceClass, method.getName(), parameterTypes);
     }
 
     //
@@ -306,9 +284,33 @@ public class UseCaseToolkit {
         return actionContext;
     }
 
-    public Method getImplementationMethod(Class<?> serviceClass, Method method) {
-        Class<?>[] parameterTypes = ArrayUtils.nullToEmpty(method.getParameterTypes());
-        return MethodUtils.getMatchingMethod(serviceClass, method.getName(), parameterTypes);
+    //
+
+    private AsyncTaskExecutor getAsyncTaskExecutor(String executorName) {
+        if (StringUtils.isNotEmpty(executorName)) {
+            return applicationContext.getBean(executorName, AsyncTaskExecutor.class);
+        } else if (StringUtils.isNotEmpty(defaultExecutorName)) {
+            return applicationContext.getBean(defaultExecutorName, AsyncTaskExecutor.class);
+        } else if (internalExecutor != null) {
+            return internalExecutor;
+        } else {
+            synchronized (this) {
+                if (StringUtils.isEmpty(defaultExecutorName) && (internalExecutor == null)) {
+                    String[] executorNames = applicationContext.getBeanNamesForType(AsyncTaskExecutor.class);
+                    executorNames = ArrayUtils.nullToEmpty(executorNames);
+                    //
+                    if (executorNames.length == 1) {
+                        defaultExecutorName = executorNames[0];
+                    } else if (ArrayUtils.contains(executorNames, DEFAULT_TASK_EXECUTOR)) {
+                        defaultExecutorName = DEFAULT_TASK_EXECUTOR;
+                    } else {
+                        internalExecutor = new SimpleAsyncTaskExecutor();
+                    }
+                }
+            }
+            //
+            return getAsyncTaskExecutor(executorName);
+        }
     }
 
     public Object executeAsync(String executorName, Class<?> resultClass, Callable<Object> callable) {
