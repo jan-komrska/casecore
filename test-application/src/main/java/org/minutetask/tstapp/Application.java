@@ -36,12 +36,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Import(CoreCaseConfiguration.class)
 @CaseCoreScan("org.minutetask.tstapp")
+@EnableAsync
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
@@ -59,7 +61,7 @@ public class Application {
     @Autowired
     private BuildFlow buildFlow = null;
 
-    public void publishDocument() {
+    public void publishDocument() throws InterruptedException {
         DocumentCase publishCase = new DocumentCase();
         publishCase.setDocumentId(1001l);
         publishCase.setFlow(PublishDocumentFlow.class);
@@ -68,11 +70,10 @@ public class Application {
         //
         documentFlow.run(publishCase.getCaseId());
         //
-        publishCase = useCaseManager.refreshUseCase(publishCase);
-        documentFlow.pageUploaded(publishCase.getPageUrl(), 0, "OK");
+        Thread.sleep(10000);
     }
 
-    public void reviewDocument() {
+    public void reviewDocument() throws InterruptedException {
         DocumentCase reviewCase = new DocumentCase();
         reviewCase.setDocumentId(1002l);
         reviewCase.setFlow(ReviewDocumentFlow.class);
@@ -81,14 +82,10 @@ public class Application {
         //
         documentFlow.run(reviewCase.getCaseId());
         //
-        reviewCase = useCaseManager.refreshUseCase(reviewCase);
-        documentFlow.pageUploaded(reviewCase.getPageUrl(), 0, "OK");
-        //
-        reviewCase = useCaseManager.refreshUseCase(reviewCase);
-        documentFlow.reviewFinished(reviewCase.getPageUrl(), 10, "review text");
+        Thread.sleep(10000);
     }
 
-    public void buildProject() {
+    public void buildProject() throws InterruptedException {
         BuildCase buildCase = new BuildCase();
         buildCase.setProjectId(2001l);
         buildCase.setFlow(BuildFlowImpl.class);

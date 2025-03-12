@@ -31,9 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class PublishDocumentFlow implements DocumentFlow {
+public class PublishDocumentFlow implements DocumentFlow, DocumentServerCallback {
     @Autowired
     private UseCaseManager useCaseManager;
+
+    @Autowired
+    private DocumentServer documentServer;
 
     @Override
     public void run(Long caseId) {
@@ -45,7 +48,7 @@ public class PublishDocumentFlow implements DocumentFlow {
         //
         log.info("sending publish request [documentId={}, pageUrl={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl());
-        // send publish request
+        documentServer.uploadPage(documentCase.getPageUrl(), "...");
     }
 
     @Override

@@ -41,9 +41,9 @@ public class DocumentCase {
 
     private Long documentId;
 
-    @KeyRef("DocumentFlow::pageUrl")
+    @KeyRef
     private String pageUrl;
 
-    @ServiceRef(DocumentFlow.class)
+    @ServiceRef({ DocumentFlow.class, DocumentServerCallback.class })
     private Class<? extends DocumentFlow> flow;
 }
