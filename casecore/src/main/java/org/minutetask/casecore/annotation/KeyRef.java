@@ -28,5 +28,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 public @interface KeyRef {
-    public String value();
+    public static final String USE_CASE_ALIAS = "org.minutetask.casecore:casecore:usecase.alias";
+
+    public String value() default USE_CASE_ALIAS;
 }
