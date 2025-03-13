@@ -31,6 +31,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.minutetask.casecore.CaseCoreScan;
 import org.minutetask.casecore.annotation.ContractRef;
+import org.minutetask.casecore.annotation.ImplementationRef;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -85,21 +86,24 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
 
     private void registerContractFactory(BeanDefinitionRegistry registry, String contractClassName) {
         Class<?> contractClass;
+        ContractRef contractRef;
         try {
             contractClass = Class.forName(contractClassName, true, Thread.currentThread().getContextClassLoader());
+            contractRef = contractClass.getAnnotation(ContractRef.class);
         } catch (ClassNotFoundException ex) {
             throw new IllegalStateException(ex);
         }
         //
-        if (!contractClass.isInterface()) {
+        if (!contractClass.isInterface() || (contractRef == null)) {
             return;
         }
         //
-        String beanName = ContractFactory.class.getName() + "::" + contractClass.getName();
+        String beanName = StringUtils.isNotEmpty(contractRef.value()) ? contractRef.value() : //
+                ContractFactory.class.getName() + ":" + contractClass.getName();
         //
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ContractFactory.class);
         beanDefinitionBuilder.setScope(BeanDefinition.SCOPE_SINGLETON);
-        beanDefinitionBuilder.setPrimary(true);
+        beanDefinitionBuilder.setPrimary(contractRef.primary());
         beanDefinitionBuilder.setLazyInit(false);
         beanDefinitionBuilder.addConstructorArgValue(contractClass);
         beanDefinitionBuilder.addPropertyValue("useCaseDispatcher", new RuntimeBeanReference(UseCaseDispatcher.class));
@@ -109,10 +113,31 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
         log.info("Registered contract factory [" + beanName + "]");
     }
 
+    private void configureImplementation(String beanName, BeanDefinition beanDefinition) {
+        if (StringUtils.isEmpty(beanDefinition.getBeanClassName())) {
+            return;
+        }
+        //
+        Class<?> beanClass;
+        ImplementationRef implementationRef;
+        try {
+            beanClass = Class.forName(beanDefinition.getBeanClassName(), true, Thread.currentThread().getContextClassLoader());
+            implementationRef = beanClass.getAnnotation(ImplementationRef.class);
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException(ex);
+        }
+        //
+        if (implementationRef != null) {
+            beanDefinition.setAutowireCandidate(implementationRef.autowireCandidate());
+            log.info("Configured implementation [" + beanName + "]");
+        }
+    }
+
     //
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        // process contracts
         ClassPathScanningCandidateComponentProvider componentProvider = createComponentProvider();
         List<String> contractPackages = new ArrayList<String>();
         Set<String> contractClasses = new HashSet<String>();
@@ -133,6 +158,11 @@ public class ContractPostProcessor implements BeanDefinitionRegistryPostProcesso
         //
         for (String contractClass : contractClasses) {
             registerContractFactory(registry, contractClass);
+        }
+        // process implementations
+        for (String beanName : ArrayUtils.nullToEmpty(registry.getBeanDefinitionNames())) {
+            BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
+            configureImplementation(beanName, beanDefinition);
         }
     }
 

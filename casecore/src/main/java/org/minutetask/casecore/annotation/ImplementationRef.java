@@ -20,15 +20,22 @@ package org.minutetask.casecore.annotation;
  * =========================LICENSE_END==================================
  */
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ContractRef {
-    public boolean primary() default true;
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.stereotype.Component;
 
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface ImplementationRef {
+    @AliasFor(annotation = Component.class)
     public String value() default "";
+
+    public boolean autowireCandidate() default false;
 }
