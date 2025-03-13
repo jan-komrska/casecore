@@ -1,7 +1,5 @@
 package org.minutetask.tstapp.simple;
 
-import java.util.UUID;
-
 /*-
  * ========================LICENSE_START=================================
  * casecore-test-application
@@ -22,15 +20,17 @@ import java.util.UUID;
  * =========================LICENSE_END==================================
  */
 
+import java.util.UUID;
+
 import org.minutetask.casecore.UseCaseManager;
 import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.ImplementationRef;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
+@ImplementationRef
 public class ReviewDocumentFlow implements DocumentFlow, DocumentServerCallback {
     @Autowired
     private UseCaseManager useCaseManager;

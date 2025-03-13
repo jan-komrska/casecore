@@ -23,7 +23,7 @@ package org.minutetask.tstapp.simple;
 import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.IdRef;
 
-@ContractRef
-public interface DocumentFlow {
+@ContractRef(primary = false)
+public interface DocumentFlow extends DocumentServerCallback {
     public void run(@IdRef Long caseId);
 }
