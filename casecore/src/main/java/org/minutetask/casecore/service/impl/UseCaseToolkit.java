@@ -269,6 +269,9 @@ public class UseCaseToolkit {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(false);
             useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(actionContext.getRetryOnFailureDelay()));
+            //
+            log.log(Level.WARNING, "Schedulled retry because of exception {0}: {1}", //
+                    new Object[] { throwable.getClass().getSimpleName(), throwable.getMessage() });
         } else {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(true);

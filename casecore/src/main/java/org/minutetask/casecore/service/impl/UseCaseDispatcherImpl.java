@@ -63,7 +63,11 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
             result = useCaseToolkit.executeService(serviceClass, serviceMethod, args);
         } catch (Exception exception) {
             action = useCaseToolkit.interruptAction(action, actionContext, exception);
-            return useCaseToolkit.rethrowException(exception);
+            if (action.getScheduledDate() == null) {
+                return useCaseToolkit.rethrowException(exception);
+            } else {
+                return null;
+            }
         }
         //
         action = useCaseToolkit.finishAction(action);

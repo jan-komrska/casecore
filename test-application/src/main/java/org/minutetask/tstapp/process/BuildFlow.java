@@ -25,7 +25,7 @@ import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.MethodRef;
 
-@ContractRef
+@ContractRef(primary = false)
 public interface BuildFlow {
     @MethodRef(async = true, persistent = true)
     public void run(@IdRef Long caseId, ActionContext actionContext);

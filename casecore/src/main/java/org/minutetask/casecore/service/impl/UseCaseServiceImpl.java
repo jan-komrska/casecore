@@ -24,12 +24,15 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -118,12 +121,19 @@ public class UseCaseServiceImpl implements UseCaseService {
             Map<Long, Long> services = new HashMap<Long, Long>();
             List<Field> serviceFields = FieldUtils.getFieldsListWithAnnotation(data.getClass(), ServiceRef.class);
             for (Field serviceField : serviceFields) {
-                Class<?>[] contractClasses = serviceField.getAnnotation(ServiceRef.class).value();
-                for (Class<?> contractClass : contractClasses) {
-                    if (contractClass == null) {
+                Set<Class<?>> contractClasses = new HashSet<Class<?>>();
+                //
+                Class<?>[] contractRefs = serviceField.getAnnotation(ServiceRef.class).value();
+                for (Class<?> contractRef : contractRefs) {
+                    if (contractRef == null) {
                         throw new ConflictException();
                     }
                     //
+                    contractClasses.add(contractRef);
+                    contractClasses.addAll(ClassUtils.getAllInterfaces(contractRef));
+                }
+                //
+                for (Class<?> contractClass : contractClasses) {
                     Long contractClassId = literalService.getIdFromClass(contractClass);
                     Class<?> serviceClass = (Class<?>) FieldUtils.readField(serviceField, data, true);
                     Long serviceClassId = literalService.getIdFromClass(serviceClass);

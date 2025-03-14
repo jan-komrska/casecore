@@ -37,11 +37,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Transactional(readOnly = true)
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseManagerImpl implements UseCaseManager {
@@ -87,6 +87,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
     //
 
     @Override
+    @Transactional(readOnly = true)
     public <UseCase> UseCase getUseCase(Object idValue, Class<UseCase> useCaseClass) {
         Long id = objectMapper.convertValue(idValue, Long.class);
         UseCaseEntity useCaseEntity = useCaseService.getUseCase(id);
@@ -98,6 +99,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public <UseCase> UseCase getUseCase(String keyType, String keyValue, Class<UseCase> useCaseClass) {
         UseCaseEntity useCaseEntity = useCaseService.getUseCase(keyType, keyValue);
         if (useCaseEntity != null) {
@@ -109,6 +111,7 @@ public class UseCaseManagerImpl implements UseCaseManager {
 
     @SuppressWarnings("unchecked")
     @Override
+    @Transactional(readOnly = true)
     public <UseCase> UseCase refreshUseCase(UseCase useCase) {
         Long useCaseId = getUseCaseId(useCase);
         UseCaseEntity useCaseEntity = (useCaseId != null) ? useCaseService.getUseCase(useCaseId) : null;
@@ -146,5 +149,37 @@ public class UseCaseManagerImpl implements UseCaseManager {
             setUseCaseId(useCase, null);
         }
         return useCase;
+    }
+
+    //
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public <UseCase> UseCase getUseCaseAuto(Object id, Class<UseCase> useCaseClass) {
+        return getUseCase(id, useCaseClass);
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public <UseCase> UseCase getUseCaseAuto(String keyType, String keyValue, Class<UseCase> useCaseClass) {
+        return getUseCase(keyType, keyValue, useCaseClass);
+    }
+
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public <UseCase> UseCase refreshUseCaseAuto(UseCase useCase) {
+        return refreshUseCase(useCase);
+    }
+
+    @Override
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+    public <UseCase> UseCase saveUseCaseAuto(UseCase useCase) {
+        return saveUseCase(useCase);
+    }
+
+    @Override
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+    public <UseCase> UseCase deleteUseCaseAuto(UseCase useCase) {
+        return deleteUseCase(useCase);
     }
 }

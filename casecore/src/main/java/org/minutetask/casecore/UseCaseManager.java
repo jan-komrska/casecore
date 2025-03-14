@@ -30,4 +30,16 @@ public interface UseCaseManager {
     public <UseCase> UseCase saveUseCase(UseCase useCase);
 
     public <UseCase> UseCase deleteUseCase(UseCase useCase);
+
+    //
+
+    public <UseCase> UseCase getUseCaseAuto(Object id, Class<UseCase> useCaseClass);
+
+    public <UseCase> UseCase getUseCaseAuto(String keyType, String keyValue, Class<UseCase> useCaseClass);
+
+    public <UseCase> UseCase refreshUseCaseAuto(UseCase useCase);
+
+    public <UseCase> UseCase saveUseCaseAuto(UseCase useCase);
+
+    public <UseCase> UseCase deleteUseCaseAuto(UseCase useCase);
 }

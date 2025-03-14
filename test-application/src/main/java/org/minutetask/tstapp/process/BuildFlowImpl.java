@@ -22,14 +22,14 @@ package org.minutetask.tstapp.process;
 
 import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.UseCaseManager;
+import org.minutetask.casecore.annotation.ImplementationRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
+@ImplementationRef
 public class BuildFlowImpl implements BuildFlow {
     @Autowired
     private UseCaseManager useCaseManager;

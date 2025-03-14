@@ -44,6 +44,6 @@ public class DocumentCase {
     @KeyRef
     private String pageUrl;
 
-    @ServiceRef({ DocumentFlow.class, DocumentServerCallback.class })
+    @ServiceRef(DocumentFlow.class)
     private Class<? extends DocumentFlow> flow;
 }
