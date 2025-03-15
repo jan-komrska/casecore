@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 
 import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
-import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,19 +39,16 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     private UseCaseDispatcherImpl self;
 
     @Autowired
-    private UseCaseActionService useCaseActionService;
-
-    @Autowired
     private UseCaseToolkit useCaseToolkit;
 
     //
 
     public Object invokeImpl(UseCaseActionEntity action) throws Exception {
-        Class<?> serviceClass = useCaseActionService.getServiceClass(action);
-        Method contractMethod = useCaseActionService.getMethod(action);
+        Class<?> serviceClass = action.getSource().getServiceClass();
+        Method contractMethod = action.getSource().getMethod();
         Method serviceMethod = useCaseToolkit.getImplementationMethod(serviceClass, contractMethod);
         //
-        Object[] args = useCaseActionService.getArgs(action);
+        Object[] args = action.getSource().getParameters();
         useCaseToolkit.setUseCaseId(serviceMethod, args, action.getUseCase().getId());
         //
         ActionContext actionContext = useCaseToolkit.newActionContext(action);
@@ -76,10 +72,10 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
 
     @Override
     public Object invoke(UseCaseActionEntity action) throws Throwable {
-        Method contractMethod = useCaseActionService.getMethod(action);
+        Method contractMethod = action.getSource().getMethod();
         //
-        if (useCaseActionService.isAsync(action)) {
-            String taskExecutor = useCaseActionService.getTaskExecutor(action);
+        if (action.getSource().isAsync()) {
+            String taskExecutor = action.getSource().getTaskExecutor();
             return useCaseToolkit.executeAsync(taskExecutor, contractMethod.getReturnType(), () -> {
                 return self.invokeImpl(action);
             });

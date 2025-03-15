@@ -20,7 +20,6 @@ package org.minutetask.casecore.service.api;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,34 +38,4 @@ public interface UseCaseActionService {
     public UseCaseActionEntity deleteAction(UseCaseActionEntity action);
 
     public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate);
-
-    //
-
-    public Class<?> getServiceClass(UseCaseActionEntity action);
-
-    public void setServiceClass(UseCaseActionEntity action, Class<?> serviceClass);
-
-    public Method getMethod(UseCaseActionEntity action);
-
-    public void setMethod(UseCaseActionEntity action, Method method);
-
-    public Object[] getArgs(UseCaseActionEntity action);
-
-    public void setArgs(UseCaseActionEntity action, Object[] args);
-
-    public boolean isPersistent(UseCaseActionEntity action);
-
-    public boolean isAsync(UseCaseActionEntity action);
-
-    public String getTaskExecutor(UseCaseActionEntity action);
-
-    public Class<?> getLastExceptionClass(UseCaseActionEntity action);
-
-    public String getLastExceptionMessage(UseCaseActionEntity action);
-
-    public void setLastException(UseCaseActionEntity action, Throwable throwable);
-
-    public int getRetryCount(UseCaseActionEntity action);
-
-    public void incRetryCount(UseCaseActionEntity action);
 }

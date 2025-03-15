@@ -51,13 +51,14 @@ public class UseCaseActionScheduler {
     public void checkScheduledActions() {
         List<UseCaseActionEntity> scheduledActions = useCaseActionService.findScheduledActions(LocalDateTime.now());
         for (UseCaseActionEntity scheduledAction : scheduledActions) {
-            boolean invokeAction = !scheduledAction.isActive() && !scheduledAction.isClosed() //
-                    && useCaseActionService.isAsync(scheduledAction);
+            boolean invokeAction = !scheduledAction.isActive() //
+                    && !scheduledAction.isClosed() //
+                    && scheduledAction.getSource().isAsync();
             if (invokeAction) {
                 scheduledAction.setActive(true);
                 scheduledAction.setScheduledDate(null);
                 //
-                useCaseActionService.incRetryCount(scheduledAction);
+                scheduledAction.getSource().incRetryCount();
                 //
                 scheduledAction = useCaseActionService.saveAction(scheduledAction);
                 //

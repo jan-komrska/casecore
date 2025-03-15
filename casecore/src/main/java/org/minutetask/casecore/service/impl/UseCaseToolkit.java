@@ -239,11 +239,11 @@ public class UseCaseToolkit {
         Long serviceClassId = useCase.getUseCaseData().getServices().get(contractId);
         Class<?> serviceClass = literalService.getClassFromId(serviceClassId);
         //
-        useCaseActionService.setServiceClass(useCaseAction, serviceClass);
-        useCaseActionService.setMethod(useCaseAction, method);
-        useCaseActionService.setArgs(useCaseAction, args);
+        useCaseAction.getSource().setServiceClass(serviceClass);
+        useCaseAction.getSource().setMethod(method);
+        useCaseAction.getSource().setParameters(args);
         //
-        if (useCaseActionService.isPersistent(useCaseAction)) {
+        if (useCaseAction.getSource().isPersistent()) {
             useCaseAction = useCaseActionService.persistAction(useCaseAction);
         }
         //
@@ -255,9 +255,9 @@ public class UseCaseToolkit {
         useCaseAction.setClosed(true);
         useCaseAction.setScheduledDate(null);
         //
-        useCaseActionService.setLastException(useCaseAction, null);
+        useCaseAction.getSource().setLastException(null);
         //
-        if (useCaseActionService.isPersistent(useCaseAction)) {
+        if (useCaseAction.getSource().isPersistent()) {
             useCaseAction = useCaseActionService.saveAction(useCaseAction);
         }
         //
@@ -265,7 +265,7 @@ public class UseCaseToolkit {
     }
 
     public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, ActionContext actionContext, Throwable throwable) {
-        if (useCaseActionService.isAsync(useCaseAction) && (actionContext.getRetryOnFailureDelay() >= 0)) {
+        if (useCaseAction.getSource().isAsync() && (actionContext.getRetryOnFailureDelay() >= 0)) {
             useCaseAction.setActive(false);
             useCaseAction.setClosed(false);
             useCaseAction.setScheduledDate(LocalDateTime.now().plusSeconds(actionContext.getRetryOnFailureDelay()));
@@ -277,9 +277,9 @@ public class UseCaseToolkit {
             useCaseAction.setClosed(true);
         }
         //
-        useCaseActionService.setLastException(useCaseAction, throwable);
+        useCaseAction.getSource().setLastException(throwable);
         //
-        if (useCaseActionService.isPersistent(useCaseAction)) {
+        if (useCaseAction.getSource().isPersistent()) {
             useCaseAction = useCaseActionService.saveAction(useCaseAction);
         }
         //
@@ -290,9 +290,9 @@ public class UseCaseToolkit {
         ActionContextDto actionContext = new ActionContextDto();
         //
         actionContext.setRetryOnFailureDelay(-1);
-        actionContext.setRetryCount(useCaseActionService.getRetryCount(useCaseAction));
-        actionContext.setLastExceptionClass(useCaseActionService.getLastExceptionClass(useCaseAction));
-        actionContext.setLastExceptionMessage(useCaseActionService.getLastExceptionMessage(useCaseAction));
+        actionContext.setRetryCount(useCaseAction.getSource().getRetryCount());
+        actionContext.setLastExceptionClass(useCaseAction.getSource().getLastExceptionClass());
+        actionContext.setLastExceptionMessage(useCaseAction.getSource().getLastExceptionMessage());
         //
         return actionContext;
     }
