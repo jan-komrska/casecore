@@ -30,9 +30,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.minutetask.casecore.annotation.MethodRef;
 import org.minutetask.casecore.exception.UnexpectedException;
+import org.minutetask.casecore.jpa.entity.UseCaseActionData;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
+import org.minutetask.casecore.jpa.entity.UseCaseActionSource;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.minutetask.casecore.jpa.repository.UseCaseActionRepository;
 import org.minutetask.casecore.service.api.LiteralService;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Transactional(readOnly = true)
@@ -63,6 +65,111 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     //
 
+    private void loadActionSource(UseCaseActionEntity action) {
+        if (action == null) {
+            return;
+        }
+        if (StringUtils.isEmpty(action.getDataAsJson())) {
+            action.setSource(new UseCaseActionSource());
+            return;
+        }
+        //
+        UseCaseActionData actionData;
+        try {
+            actionData = objectMapper.readValue(action.getDataAsJson(), UseCaseActionData.class);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+        //
+        Class<?> serviceClass = literalService.getClassFromId(actionData.getServiceClassId());
+        Method method = null;
+        Object[] parameters = null;
+        Class<?> lastExceptionClass = literalService.getClassFromId(actionData.getLastExceptionClassId());
+        String lastExceptionMessage = actionData.getLastExceptionMessage();
+        int retryCount = actionData.getRetryCount();
+        //
+        String methodName = actionData.getMethodName();
+        if (StringUtils.isNotEmpty(methodName)) {
+            Long methodClassId = actionData.getMethodClassId();
+            Class<?> methodClass = literalService.getClassFromId(methodClassId);
+            Class<?>[] parameterClasses = actionData.getParameterClassIds().stream(). //
+                    map(literalService::getClassFromId).toArray(Class<?>[]::new);
+            //
+            try {
+                method = methodClass.getDeclaredMethod(methodName, parameterClasses);
+            } catch (NoSuchMethodException ex) {
+                throw new UnexpectedException(ex);
+            }
+            //
+            Object[] actionParameters = actionData.getParameters().toArray();
+            Object[] sourceParameters = new Object[parameterClasses.length];
+            //
+            for (int index = 0; index < Math.min(parameterClasses.length, actionParameters.length); index++) {
+                sourceParameters[index] = objectMapper.convertValue(actionParameters[index], parameterClasses[index]);
+            }
+            //
+            parameters = sourceParameters;
+        }
+        //
+        UseCaseActionSource actionSource = new UseCaseActionSource();
+        actionSource.setServiceClass(serviceClass);
+        actionSource.setMethod(method);
+        actionSource.setParameters(parameters);
+        actionSource.setLastExceptionClass(lastExceptionClass);
+        actionSource.setLastExceptionMessage(lastExceptionMessage);
+        actionSource.setRetryCount(retryCount);
+        //
+        action.setSource(actionSource);
+    }
+
+    private void saveActionSource(UseCaseActionEntity action) {
+        if (action == null) {
+            return;
+        }
+        if ((action.getSource() == null) || action.getSource().isEmpty()) {
+            action.setDataAsJson(null);
+            return;
+        }
+        //
+        UseCaseActionSource actionSource = action.getSource();
+        //
+        Long serviceClassId = literalService.getIdFromClass(actionSource.getServiceClass());
+        Long methodClassId = null;
+        String methodName = null;
+        List<Long> parameterClassIds = null;
+        List<Object> parameters = new ArrayList<Object>();
+        //
+        CollectionUtils.addAll(parameters, ArrayUtils.nullToEmpty(actionSource.getParameters()));
+        //
+        Method method = actionSource.getMethod();
+        if (method != null) {
+            methodClassId = literalService.getIdFromClass(method.getDeclaringClass());
+            methodName = method.getName();
+            //
+            parameterClassIds = Arrays.stream(ArrayUtils.nullToEmpty(method.getParameterTypes())) //
+                    .map(literalService::getIdFromClass).toList();
+            parameterClassIds = new ArrayList<Long>(parameterClassIds);
+        }
+        //
+        UseCaseActionData actionData = new UseCaseActionData();
+        actionData.setServiceClassId(serviceClassId);
+        actionData.setMethodClassId(methodClassId);
+        actionData.setMethodName(methodName);
+        actionData.setParameterClassIds(parameterClassIds);
+        actionData.setParameters(parameters);
+        //
+        String dataAsJson;
+        try {
+            dataAsJson = objectMapper.writeValueAsString(actionData);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException(ex);
+        }
+        //
+        action.setDataAsJson(dataAsJson);
+    }
+
+    //
+
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public UseCaseActionEntity newAction(UseCaseEntity useCase, boolean active) {
@@ -71,19 +178,24 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         action.setActive(active);
         action.setClosed(false);
         action.setCreatedDate(LocalDateTime.now());
+        //
+        loadActionSource(action);
         return action;
     }
 
     @Override
     public UseCaseActionEntity getAction(Long id) {
-        return useCaseActionRepository.findById(id).orElse(null);
+        UseCaseActionEntity action = useCaseActionRepository.findById(id).orElse(null);
+        //
+        loadActionSource(action);
+        return action;
     }
 
     @Override
     @Transactional
     public UseCaseActionEntity persistAction(UseCaseActionEntity action) {
         if (action.getId() == null) {
-            action.applyChanges();
+            saveActionSource(action);
             return useCaseActionRepository.save(action);
         } else {
             return action;
@@ -94,7 +206,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Transactional
     public UseCaseActionEntity saveAction(UseCaseActionEntity action) {
         if (action.getId() != null) {
-            action.applyChanges();
+            saveActionSource(action);
             return useCaseActionRepository.save(action);
         } else {
             return action;
@@ -112,7 +224,11 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     }
 
     public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate) {
-        return ListUtils.emptyIfNull(useCaseActionRepository.findScheduledActions(targetDate));
+        List<UseCaseActionEntity> scheduledActions = ListUtils.emptyIfNull(useCaseActionRepository.findScheduledActions(targetDate));
+        for (UseCaseActionEntity scheduledAction : scheduledActions) {
+            loadActionSource(scheduledAction);
+        }
+        return scheduledActions;
     }
 
     //
@@ -120,147 +236,84 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Class<?> getServiceClass(UseCaseActionEntity action) {
-        Long serviceClassId = action.getUseCaseActionData().getServiceClassId();
-        return literalService.getClassFromId(serviceClassId);
+        return action.getSource().getServiceClass();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setServiceClass(UseCaseActionEntity action, Class<?> serviceClass) {
-        Long serviceClassId = literalService.getIdFromClass(serviceClass);
-        action.getUseCaseActionData().setServiceClassId(serviceClassId);
+        action.getSource().setServiceClass(serviceClass);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Method getMethod(UseCaseActionEntity action) {
-        String methodName = action.getUseCaseActionData().getMethodName();
-        if (StringUtils.isNotEmpty(methodName)) {
-            Long methodClassId = action.getUseCaseActionData().getMethodClassId();
-            Class<?> methodClass = literalService.getClassFromId(methodClassId);
-            //
-            Class<?>[] parameterClasses = action.getUseCaseActionData().getParameterClassIds(). //
-                    stream().map(literalService::getClassFromId).toArray(Class<?>[]::new);
-            //
-            try {
-                return methodClass.getDeclaredMethod(methodName, parameterClasses);
-            } catch (NoSuchMethodException ex) {
-                throw new UnexpectedException(ex);
-            }
-        } else {
-            return null;
-        }
+        return action.getSource().getMethod();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setMethod(UseCaseActionEntity action, Method method) {
-        if (method != null) {
-            Long methodClassId = literalService.getIdFromClass(method.getDeclaringClass());
-            //
-            List<Long> parameterClassIds = Arrays.stream(ArrayUtils.nullToEmpty(method.getParameterTypes())) //
-                    .map(literalService::getIdFromClass).toList();
-            parameterClassIds = new ArrayList<Long>(parameterClassIds);
-            //
-            action.getUseCaseActionData().setMethodClassId(methodClassId);
-            action.getUseCaseActionData().setMethodName(method.getName());
-            action.getUseCaseActionData().setParameterClassIds(parameterClassIds);
-            //
-            MethodRef methodRef = method.getAnnotation(MethodRef.class);
-            action.getUseCaseActionData().setAsync((methodRef != null) ? methodRef.async() : false);
-            action.getUseCaseActionData().setPersistent((methodRef != null) ? methodRef.persistent() : false);
-            action.getUseCaseActionData().setTaskExecutor((methodRef != null) ? methodRef.taskExecutor() : "");
-        } else {
-            action.getUseCaseActionData().setMethodClassId(null);
-            action.getUseCaseActionData().setMethodName(null);
-            action.getUseCaseActionData().setParameterClassIds(null);
-            //
-            action.getUseCaseActionData().setAsync(false);
-            action.getUseCaseActionData().setPersistent(false);
-            action.getUseCaseActionData().setTaskExecutor("");
-        }
+        action.getSource().setMethod(method);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Object[] getArgs(UseCaseActionEntity action) {
-        Class<?>[] parameterClasses = action.getUseCaseActionData().getParameterClassIds(). //
-                stream().map(literalService::getClassFromId).toArray(Class<?>[]::new);
-        Object[] parameters = action.getUseCaseActionData().getParameters().toArray();
-        //
-        for (int index = 0; index < parameterClasses.length; index++) {
-            parameters[index] = objectMapper.convertValue(parameters[index], parameterClasses[index]);
-        }
-        //
-        return parameters;
+        return action.getSource().getParameters();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setArgs(UseCaseActionEntity action, Object[] args) {
-        List<Object> parameters = new ArrayList<Object>();
-        CollectionUtils.addAll(parameters, ArrayUtils.nullToEmpty(args));
-        //
-        action.getUseCaseActionData().setParameters(parameters);
+        action.getSource().setParameters(args);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public boolean isPersistent(UseCaseActionEntity action) {
-        return action.getUseCaseActionData().isPersistent();
+        return action.getSource().isPersistent();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public boolean isAsync(UseCaseActionEntity action) {
-        return action.getUseCaseActionData().isAsync();
+        return action.getSource().isAsync();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public String getTaskExecutor(UseCaseActionEntity action) {
-        return action.getUseCaseActionData().getTaskExecutor();
+        return action.getSource().getTaskExecutor();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Class<?> getLastExceptionClass(UseCaseActionEntity action) {
-        Long lastExceptionClassId = action.getUseCaseActionData().getLastExceptionClassId();
-        return literalService.getClassFromId(lastExceptionClassId);
+        return action.getSource().getLastExceptionClass();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public String getLastExceptionMessage(UseCaseActionEntity action) {
-        return action.getUseCaseActionData().getLastExceptionMessage();
+        return action.getSource().getLastExceptionMessage();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void setLastException(UseCaseActionEntity action, Throwable throwable) {
-        if (throwable != null) {
-            Long lastExceptionClassId = literalService.getIdFromClass(throwable.getClass());
-            String lastExceptionMessage = throwable.getMessage();
-            //
-            action.getUseCaseActionData().setLastExceptionClassId(lastExceptionClassId);
-            action.getUseCaseActionData().setLastExceptionMessage(lastExceptionMessage);
-        } else {
-            action.getUseCaseActionData().setLastExceptionClassId(null);
-            action.getUseCaseActionData().setLastExceptionMessage(null);
-        }
+        action.getSource().setLastException(throwable);
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public int getRetryCount(UseCaseActionEntity action) {
-        Integer retryCount = action.getUseCaseActionData().getRetryCount();
-        return (retryCount != null) ? retryCount : 0;
+        return action.getSource().getRetryCount();
     }
 
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public void incRetryCount(UseCaseActionEntity action) {
-        int retryCount = action.getUseCaseActionData().getRetryCount();
-        action.getUseCaseActionData().setRetryCount(retryCount + 1);
+        action.getSource().incRetryCount();
     }
 }

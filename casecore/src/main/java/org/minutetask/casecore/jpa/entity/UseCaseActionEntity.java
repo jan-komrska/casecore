@@ -22,11 +22,6 @@ package org.minutetask.casecore.jpa.entity;
 
 import java.time.LocalDateTime;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,7 +32,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 import jakarta.persistence.Transient;
@@ -72,8 +66,6 @@ public class UseCaseActionEntity {
     @JoinColumn(name = "usecase_id", nullable = false)
     private UseCaseEntity useCase = null;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
     @Lob
     @Column(name = "data", nullable = true, length = 100000)
     private String dataAsJson = null;
@@ -92,53 +84,22 @@ public class UseCaseActionEntity {
 
     //
 
-    @Setter
-    private static ObjectMapper objectMapper = null;
-
-    public static ObjectMapper getObjectMapper() {
-        if (objectMapper == null) {
-            objectMapper = new ObjectMapper();
-        }
-        return objectMapper;
-    }
-
-    //
-
-    @Getter(AccessLevel.NONE)
     @Transient
-    private UseCaseActionData useCaseActionData = null;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private UseCaseActionSource source;
 
-    @PostLoad
-    public void postLoad() {
-        try {
-            if (StringUtils.isNotEmpty(dataAsJson)) {
-                setUseCaseActionData(getObjectMapper().readValue(dataAsJson, UseCaseActionData.class));
-            } else {
-                setUseCaseActionData(null);
-            }
-        } catch (JsonProcessingException ex) {
-            throw new IllegalStateException(ex);
+    public UseCaseActionSource getSource() {
+        if (source == null) {
+            source = new UseCaseActionSource();
         }
+        return source;
     }
 
-    public void applyChanges() {
-        try {
-            if (!getUseCaseActionData().isEmpty()) {
-                dataAsJson = getObjectMapper().writeValueAsString(getUseCaseActionData());
-            } else {
-                dataAsJson = null;
-            }
-        } catch (JsonProcessingException ex) {
-            throw new IllegalStateException(ex);
+    public void setSource(UseCaseActionSource source) {
+        if (source == null) {
+            source = new UseCaseActionSource();
         }
-    }
-
-    //
-
-    public UseCaseActionData getUseCaseActionData() {
-        if (useCaseActionData == null) {
-            useCaseActionData = new UseCaseActionData();
-        }
-        return useCaseActionData;
+        this.source = source;
     }
 }

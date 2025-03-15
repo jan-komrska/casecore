@@ -23,10 +23,6 @@ package org.minutetask.casecore.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,22 +44,10 @@ public class UseCaseActionData {
     @Getter(AccessLevel.NONE)
     private List<Object> parameters;
 
-    //
-
-    private boolean persistent;
-
-    private boolean async;
-
-    @Setter(AccessLevel.NONE)
-    private String taskExecutor;
-
-    //
-
     private int retryCount;
 
     private Long lastExceptionClassId;
 
-    @Setter(AccessLevel.NONE)
     private String lastExceptionMessage;
 
     //
@@ -80,25 +64,5 @@ public class UseCaseActionData {
             parameters = new ArrayList<Object>();
         }
         return parameters;
-    }
-
-    public void setLastExceptionMessage(String lastExceptionMessage) {
-        this.lastExceptionMessage = (StringUtils.isNotEmpty(lastExceptionMessage)) ? lastExceptionMessage : null;
-    }
-
-    public void setTaskExecutor(String taskExecutor) {
-        this.taskExecutor = (StringUtils.isNotEmpty(taskExecutor)) ? taskExecutor : null;
-    }
-
-    //
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return (serviceClassId == null) //
-                && (methodClassId == null) && StringUtils.isEmpty(methodName) //
-                && getParameterClassIds().isEmpty() && getParameters().isEmpty() //
-                && !persistent && !async && (taskExecutor == null) //
-                && (retryCount == 0) //
-                && (lastExceptionClassId == null) && (lastExceptionMessage == null);
     }
 }

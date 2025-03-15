@@ -4,7 +4,7 @@ package org.minutetask.casecore;
  * ========================LICENSE_START=================================
  * org.minutetask.casecore:casecore
  * %%
- * Copyright (C) 2024 - 2025 Jan Komrska
+ * Copyright (C) 2025 Jan Komrska
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.minutetask.casecore;
  * =========================LICENSE_END==================================
  */
 
-import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -48,7 +47,6 @@ public class CoreCaseConfiguration {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         //
         UseCaseEntity.setObjectMapper(objectMapper);
-        UseCaseActionEntity.setObjectMapper(objectMapper);
         return objectMapper;
     }
 }
