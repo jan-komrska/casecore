@@ -79,12 +79,8 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
             throw new IllegalStateException(ex);
         }
         //
-        Class<?> serviceClass = literalService.getClassFromId(actionData.getServiceClassId());
         Method method = null;
         Object[] parameters = null;
-        Class<?> lastExceptionClass = literalService.getClassFromId(actionData.getLastExceptionClassId());
-        String lastExceptionMessage = actionData.getLastExceptionMessage();
-        int retryCount = actionData.getRetryCount();
         //
         String methodName = actionData.getMethodName();
         if (StringUtils.isNotEmpty(methodName)) {
@@ -108,12 +104,12 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         }
         //
         UseCaseActionSource actionSource = new UseCaseActionSource();
-        actionSource.setServiceClass(serviceClass);
+        actionSource.setServiceClass(literalService.getClassFromId(actionData.getServiceClassId()));
         actionSource.setMethod(method);
         actionSource.setParameters(parameters);
-        actionSource.setLastExceptionClass(lastExceptionClass);
-        actionSource.setLastExceptionMessage(lastExceptionMessage);
-        actionSource.setRetryCount(retryCount);
+        actionSource.setLastExceptionClass(literalService.getClassFromId(actionData.getLastExceptionClassId()));
+        actionSource.setLastExceptionMessage(actionData.getLastExceptionMessage());
+        actionSource.setRetryCount(actionData.getRetryCount());
         //
         action.setSource(actionSource);
     }
@@ -129,14 +125,9 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
             return;
         }
         //
-        Long serviceClassId = literalService.getIdFromClass(actionSource.getServiceClass());
         Long methodClassId = null;
         String methodName = null;
         Long[] parameterClassIds = null;
-        Object[] parameters = actionSource.getParameters();
-        Long lastExceptionClassId = literalService.getIdFromClass(actionSource.getLastExceptionClass());
-        String lastExceptionMessage = actionSource.getLastExceptionMessage();
-        int retryCount = actionSource.getRetryCount();
         //
         Method method = actionSource.getMethod();
         if (method != null) {
@@ -147,14 +138,14 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         }
         //
         UseCaseActionData actionData = new UseCaseActionData();
-        actionData.setServiceClassId(serviceClassId);
+        actionData.setServiceClassId(literalService.getIdFromClass(actionSource.getServiceClass()));
         actionData.setMethodClassId(methodClassId);
         actionData.setMethodName(methodName);
         actionData.setParameterClassIds(parameterClassIds);
-        actionData.setParameters(parameters);
-        actionData.setLastExceptionClassId(lastExceptionClassId);
-        actionData.setLastExceptionMessage(lastExceptionMessage);
-        actionData.setRetryCount(retryCount);
+        actionData.setParameters(actionSource.getParameters());
+        actionData.setLastExceptionClassId(literalService.getIdFromClass(actionSource.getLastExceptionClass()));
+        actionData.setLastExceptionMessage(actionSource.getLastExceptionMessage());
+        actionData.setRetryCount(actionSource.getRetryCount());
         //
         String dataAsJson;
         try {
