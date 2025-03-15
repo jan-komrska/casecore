@@ -22,11 +22,9 @@ package org.minutetask.casecore.service.impl;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,8 +90,9 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         if (StringUtils.isNotEmpty(methodName)) {
             Long methodClassId = actionData.getMethodClassId();
             Class<?> methodClass = literalService.getClassFromId(methodClassId);
-            Class<?>[] parameterClasses = actionData.getParameterClassIds().stream(). //
+            Class<?>[] parameterClasses = Arrays.stream(ArrayUtils.nullToEmpty(actionData.getParameterClassIds())). //
                     map(literalService::getClassFromId).toArray(Class<?>[]::new);
+            parameters = new Object[parameterClasses.length];
             //
             try {
                 method = methodClass.getDeclaredMethod(methodName, parameterClasses);
@@ -101,14 +100,11 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
                 throw new UnexpectedException(ex);
             }
             //
-            Object[] actionParameters = actionData.getParameters().toArray();
-            Object[] sourceParameters = new Object[parameterClasses.length];
-            //
-            for (int index = 0; index < Math.min(parameterClasses.length, actionParameters.length); index++) {
-                sourceParameters[index] = objectMapper.convertValue(actionParameters[index], parameterClasses[index]);
+            Object[] actionParameters = ArrayUtils.nullToEmpty(actionData.getParameters());
+            int maxIndex = Math.min(parameterClasses.length, actionParameters.length);
+            for (int index = 0; index < maxIndex; index++) {
+                parameters[index] = objectMapper.convertValue(actionParameters[index], parameterClasses[index]);
             }
-            //
-            parameters = sourceParameters;
         }
         //
         UseCaseActionSource actionSource = new UseCaseActionSource();
@@ -126,29 +122,28 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         if (action == null) {
             return;
         }
-        if ((action.getSource() == null) || action.getSource().isEmpty()) {
+        //
+        UseCaseActionSource actionSource = action.getSource();
+        if (actionSource == null || actionSource.isEmpty()) {
             action.setDataAsJson(null);
             return;
         }
         //
-        UseCaseActionSource actionSource = action.getSource();
-        //
         Long serviceClassId = literalService.getIdFromClass(actionSource.getServiceClass());
         Long methodClassId = null;
         String methodName = null;
-        List<Long> parameterClassIds = null;
-        List<Object> parameters = new ArrayList<Object>();
-        //
-        CollectionUtils.addAll(parameters, ArrayUtils.nullToEmpty(actionSource.getParameters()));
+        Long[] parameterClassIds = null;
+        Object[] parameters = actionSource.getParameters();
+        Long lastExceptionClassId = literalService.getIdFromClass(actionSource.getLastExceptionClass());
+        String lastExceptionMessage = actionSource.getLastExceptionMessage();
+        int retryCount = actionSource.getRetryCount();
         //
         Method method = actionSource.getMethod();
         if (method != null) {
             methodClassId = literalService.getIdFromClass(method.getDeclaringClass());
             methodName = method.getName();
-            //
             parameterClassIds = Arrays.stream(ArrayUtils.nullToEmpty(method.getParameterTypes())) //
-                    .map(literalService::getIdFromClass).toList();
-            parameterClassIds = new ArrayList<Long>(parameterClassIds);
+                    .map(literalService::getIdFromClass).toArray(Long[]::new);
         }
         //
         UseCaseActionData actionData = new UseCaseActionData();
@@ -157,6 +152,9 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         actionData.setMethodName(methodName);
         actionData.setParameterClassIds(parameterClassIds);
         actionData.setParameters(parameters);
+        actionData.setLastExceptionClassId(lastExceptionClassId);
+        actionData.setLastExceptionMessage(lastExceptionMessage);
+        actionData.setRetryCount(retryCount);
         //
         String dataAsJson;
         try {

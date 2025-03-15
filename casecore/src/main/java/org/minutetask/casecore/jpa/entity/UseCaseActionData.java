@@ -20,10 +20,6 @@ package org.minutetask.casecore.jpa.entity;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,34 +31,12 @@ public class UseCaseActionData {
     private Long serviceClassId;
 
     private Long methodClassId;
-
     private String methodName;
+    private Long[] parameterClassIds;
 
-    @Getter(AccessLevel.NONE)
-    private List<Long> parameterClassIds;
-
-    @Getter(AccessLevel.NONE)
-    private List<Object> parameters;
-
-    private int retryCount;
+    private Object[] parameters;
 
     private Long lastExceptionClassId;
-
     private String lastExceptionMessage;
-
-    //
-
-    public List<Long> getParameterClassIds() {
-        if (parameterClassIds == null) {
-            parameterClassIds = new ArrayList<Long>();
-        }
-        return parameterClassIds;
-    }
-
-    public List<Object> getParameters() {
-        if (parameters == null) {
-            parameters = new ArrayList<Object>();
-        }
-        return parameters;
-    }
+    private int retryCount;
 }
