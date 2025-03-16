@@ -58,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Transactional(readOnly = true)
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseServiceImpl implements UseCaseService {
@@ -279,11 +278,13 @@ public class UseCaseServiceImpl implements UseCaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UseCaseEntity getUseCase(Long id) {
         return useCaseRepository.findById(id).orElse(null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UseCaseEntity getUseCase(String keyType, String keyValue) {
         Long keyTypeId = literalService.getIdFromValue(keyType);
         UseCaseKeyEntity useCaseKeyEntity = useCaseKeyRepository.findByTypeIdAndValue(keyTypeId, keyValue);
