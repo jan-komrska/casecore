@@ -47,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Transactional(readOnly = true)
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
 public class UseCaseActionServiceImpl implements UseCaseActionService {
@@ -173,6 +172,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UseCaseActionEntity getAction(Long id) {
         UseCaseActionEntity action = useCaseActionRepository.findById(id).orElse(null);
         //
@@ -212,6 +212,7 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
         return action;
     }
 
+    @Transactional(readOnly = true)
     public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate) {
         List<UseCaseActionEntity> scheduledActions = ListUtils.emptyIfNull(useCaseActionRepository.findScheduledActions(targetDate));
         for (UseCaseActionEntity scheduledAction : scheduledActions) {
