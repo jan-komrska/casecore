@@ -56,7 +56,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -213,7 +212,6 @@ public class UseCaseToolkit {
         return args;
     }
 
-    @Transactional
     public UseCaseActionEntity newAction(Method method, Object[] args) {
         args = prepareActionArgs(args);
         //
@@ -250,7 +248,6 @@ public class UseCaseToolkit {
         return useCaseAction;
     }
 
-    @Transactional
     public UseCaseActionEntity finishAction(UseCaseActionEntity useCaseAction) {
         useCaseAction.setActive(false);
         useCaseAction.setClosed(true);
@@ -265,7 +262,6 @@ public class UseCaseToolkit {
         return useCaseAction;
     }
 
-    @Transactional
     public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, ActionContext actionContext, Throwable throwable) {
         if (useCaseAction.getSource().isAsync() && (actionContext.getRetryOnFailureDelay() >= 0)) {
             useCaseAction.setActive(false);
