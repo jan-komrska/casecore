@@ -250,6 +250,7 @@ public class UseCaseToolkit {
         return useCaseAction;
     }
 
+    @Transactional
     public UseCaseActionEntity finishAction(UseCaseActionEntity useCaseAction) {
         useCaseAction.setActive(false);
         useCaseAction.setClosed(true);
@@ -264,6 +265,7 @@ public class UseCaseToolkit {
         return useCaseAction;
     }
 
+    @Transactional
     public UseCaseActionEntity interruptAction(UseCaseActionEntity useCaseAction, ActionContext actionContext, Throwable throwable) {
         if (useCaseAction.getSource().isAsync() && (actionContext.getRetryOnFailureDelay() >= 0)) {
             useCaseAction.setActive(false);
