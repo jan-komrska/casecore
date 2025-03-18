@@ -297,6 +297,12 @@ public class UseCaseServiceImpl implements UseCaseService {
 
     @Override
     @Transactional
+    public UseCaseEntity lockUseCase(UseCaseEntity useCase) {
+        return useCaseRepository.getLockedEntityById(useCase.getId());
+    }
+
+    @Override
+    @Transactional
     public UseCaseEntity saveUseCase(UseCaseEntity useCase) {
         useCase.applyChanges();
         useCase.setUpdatedDate(LocalDateTime.now());

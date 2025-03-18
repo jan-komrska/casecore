@@ -22,8 +22,13 @@ package org.minutetask.casecore.jpa.repository;
 
 import org.minutetask.casecore.jpa.entity.UseCaseEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface UseCaseRepository extends JpaRepository<UseCaseEntity, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    public UseCaseEntity getLockedEntityById(Long id);
 }

@@ -29,6 +29,8 @@ public interface UseCaseService {
 
     public UseCaseEntity getUseCase(String keyType, String keyValue);
 
+    public UseCaseEntity lockUseCase(UseCaseEntity useCase);
+
     public UseCaseEntity saveUseCase(UseCaseEntity useCase);
 
     public void deleteUseCaseById(Long id);
