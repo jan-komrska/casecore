@@ -182,6 +182,12 @@ public class UseCaseActionServiceImpl implements UseCaseActionService {
 
     @Override
     @Transactional
+    public UseCaseActionEntity lockAction(UseCaseActionEntity action) {
+        return useCaseActionRepository.getLockedEntityById(action.getId());
+    }
+
+    @Override
+    @Transactional
     public UseCaseActionEntity persistAction(UseCaseActionEntity action) {
         if (action.getId() == null) {
             saveActionSource(action);

@@ -24,12 +24,17 @@ import java.lang.reflect.Method;
 
 import org.minutetask.casecore.ActionContext;
 import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
+import org.minutetask.casecore.service.api.UseCaseActionService;
 import org.minutetask.casecore.service.api.UseCaseDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @Scope(value = BeanDefinition.SCOPE_SINGLETON)
@@ -39,7 +44,13 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
     private UseCaseDispatcherImpl self;
 
     @Autowired
+    private UseCaseActionService useCaseActionService;
+
+    @Autowired
     private UseCaseToolkit useCaseToolkit;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     //
 
@@ -84,8 +95,30 @@ public class UseCaseDispatcherImpl implements UseCaseDispatcher {
         }
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleCustom(UseCaseActionReadyEvent actionReadyEvent) throws Throwable {
+        UseCaseActionEntity action = useCaseActionService.getAction(actionReadyEvent.getActionId());
+        Method contractMethod = action.getSource().getMethod();
+        //
+        String taskExecutor = action.getSource().getTaskExecutor();
+        useCaseToolkit.executeAsync(taskExecutor, contractMethod.getReturnType(), () -> {
+            return self.invokeImpl(action);
+        });
+    }
+
     @Override
     public Object invoke(Method method, Object[] args) throws Throwable {
-        return invoke(useCaseToolkit.newAction(method, args));
+        UseCaseActionEntity action = useCaseToolkit.newAction(method, args);
+        boolean persistent = action.getSource().isPersistent();
+        boolean async = action.getSource().isAsync();
+        boolean inTransaction = TransactionSynchronizationManager.isActualTransactionActive();
+        //
+        if (persistent && async && inTransaction) {
+            UseCaseActionReadyEvent actionReadyEvent = new UseCaseActionReadyEvent(this, action.getId());
+            applicationEventPublisher.publishEvent(actionReadyEvent);
+            return null;
+        } else {
+            return self.invoke(action);
+        }
     }
 }

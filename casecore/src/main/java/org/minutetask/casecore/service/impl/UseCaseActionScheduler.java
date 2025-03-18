@@ -21,6 +21,7 @@ package org.minutetask.casecore.service.impl;
  */
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -50,7 +51,10 @@ public class UseCaseActionScheduler {
     @Transactional
     public void checkScheduledActions() {
         List<UseCaseActionEntity> scheduledActions = useCaseActionService.findScheduledActions(LocalDateTime.now());
+        scheduledActions.sort(Comparator.comparing(UseCaseActionEntity::getId));
+        //
         for (UseCaseActionEntity scheduledAction : scheduledActions) {
+            scheduledAction = useCaseActionService.lockAction(scheduledAction);
             boolean invokeAction = !scheduledAction.isActive() //
                     && !scheduledAction.isClosed() //
                     && scheduledAction.getSource().isAsync();

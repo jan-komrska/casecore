@@ -34,9 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,15 +55,23 @@ public class Application {
 
     //
 
+    @Lazy
     @Autowired
-    private UseCaseManager useCaseManager = null;
+    private Application self;
 
     @Autowired
-    private DocumentFlow documentFlow = null;
+    private ConfigurableApplicationContext applicationContext;
 
     @Autowired
-    private BuildFlow buildFlow = null;
+    private UseCaseManager useCaseManager;
 
+    @Autowired
+    private DocumentFlow documentFlow;
+
+    @Autowired
+    private BuildFlow buildFlow;
+
+    @Transactional
     public void publishDocument() throws InterruptedException {
         DocumentCase publishCase = new DocumentCase();
         publishCase.setDocumentId(1001l);
@@ -69,10 +80,9 @@ public class Application {
         log.info("document case: {}", publishCase.toString());
         //
         documentFlow.run(publishCase.getCaseId());
-        //
-        Thread.sleep(10000);
     }
 
+    @Transactional
     public void reviewDocument() throws InterruptedException {
         DocumentCase reviewCase = new DocumentCase();
         reviewCase.setDocumentId(1002l);
@@ -81,10 +91,9 @@ public class Application {
         log.info("document case: {}", reviewCase.toString());
         //
         documentFlow.run(reviewCase.getCaseId());
-        //
-        Thread.sleep(10000);
     }
 
+    @Transactional
     public void buildProject() throws InterruptedException {
         BuildCase buildCase = new BuildCase();
         buildCase.setProjectId(2001l);
@@ -98,12 +107,19 @@ public class Application {
     public CommandLineRunner commandLineRunner() {
         return args -> {
             log.info("---");
-            publishDocument();
+            self.publishDocument();
+            Thread.sleep(10000);
+            //
             log.info("---");
-            reviewDocument();
+            self.reviewDocument();
+            Thread.sleep(10000);
+            //
             log.info("---");
-            buildProject();
+            self.buildProject();
+            Thread.sleep(40000);
+            //
             log.info("---");
+            applicationContext.close();
         };
     }
 }

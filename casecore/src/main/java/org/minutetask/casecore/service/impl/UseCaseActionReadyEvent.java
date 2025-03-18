@@ -1,4 +1,4 @@
-package org.minutetask.casecore.service.api;
+package org.minutetask.casecore.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,24 +20,19 @@ package org.minutetask.casecore.service.api;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
-import java.util.List;
+import org.springframework.context.ApplicationEvent;
 
-import org.minutetask.casecore.jpa.entity.UseCaseActionEntity;
-import org.minutetask.casecore.jpa.entity.UseCaseEntity;
+import lombok.Getter;
+import lombok.ToString;
 
-public interface UseCaseActionService {
-    public UseCaseActionEntity newAction(UseCaseEntity useCase, boolean active);
+@Getter
+@ToString
+public class UseCaseActionReadyEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 5264580959384841454L;
+    private Long actionId = null;
 
-    public UseCaseActionEntity getAction(Long id);
-
-    public UseCaseActionEntity lockAction(UseCaseActionEntity action);
-
-    public UseCaseActionEntity persistAction(UseCaseActionEntity action);
-
-    public UseCaseActionEntity saveAction(UseCaseActionEntity action);
-
-    public UseCaseActionEntity deleteAction(UseCaseActionEntity action);
-
-    public List<UseCaseActionEntity> findScheduledActions(LocalDateTime targetDate);
+    public UseCaseActionReadyEvent(Object source, Long actionId) {
+        super(source);
+        this.actionId = actionId;
+    }
 }
