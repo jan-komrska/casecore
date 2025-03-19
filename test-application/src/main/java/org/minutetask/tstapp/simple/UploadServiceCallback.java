@@ -24,12 +24,8 @@ import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.KeyRef;
 
 @ContractRef
-public interface DocumentServerCallback {
+public interface UploadServiceCallback {
     default public void pageUploaded(@KeyRef String pageUrl, int pageState, String message) {
-        throw new UnsupportedOperationException();
-    }
-
-    default public void reviewFinished(@KeyRef String pageUrl, int score, String message) {
         throw new UnsupportedOperationException();
     }
 }

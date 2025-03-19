@@ -31,12 +31,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ImplementationRef
-public class ReviewDocumentFlow implements DocumentFlow, DocumentServerCallback {
+public class ReviewDocumentFlow implements DocumentFlow, UploadServiceCallback {
     @Autowired
     private UseCaseManager useCaseManager;
 
     @Autowired
-    private DocumentServer documentServer;
+    private UploadService uploadService;
+
+    @Autowired
+    private ReviewService reviewService;
 
     @Override
     public void run(Long caseId) {
@@ -49,7 +52,7 @@ public class ReviewDocumentFlow implements DocumentFlow, DocumentServerCallback 
         //
         log.info("sending internal-publish request [documentId={}, pageUrl={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl());
-        documentServer.uploadPage(documentCase.getPageUrl(), "...");
+        uploadService.uploadPage(documentCase.getPageUrl(), "...");
     }
 
     @Override
@@ -60,7 +63,7 @@ public class ReviewDocumentFlow implements DocumentFlow, DocumentServerCallback 
         //
         log.info("sending internal-review request [documentId={}, pageUrl={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl());
-        documentServer.reviewPage(documentCase.getPageUrl());
+        reviewService.reviewPage(documentCase.getPageUrl());
     }
 
     @Override

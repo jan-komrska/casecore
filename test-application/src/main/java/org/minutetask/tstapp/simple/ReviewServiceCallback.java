@@ -21,9 +21,11 @@ package org.minutetask.tstapp.simple;
  */
 
 import org.minutetask.casecore.annotation.ContractRef;
-import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.KeyRef;
 
-@ContractRef(primary = false)
-public interface DocumentFlow extends UploadServiceCallback, ReviewServiceCallback {
-    public void run(@IdRef Long caseId);
+@ContractRef
+public interface ReviewServiceCallback {
+    default public void reviewFinished(@KeyRef String pageUrl, int score, String message) {
+        throw new UnsupportedOperationException();
+    }
 }

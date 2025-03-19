@@ -29,22 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class DocumentServer {
+public class ReviewService {
     @Autowired
-    private DocumentServerCallback callback;
-
-    @Async
-    public void uploadPage(String pageUrl, String pageContent) {
-        log.info("upload of page {} started", pageUrl);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException ex) {
-            // DO NOTHING
-        }
-        log.info("upload of page {} finished", pageUrl);
-        //
-        callback.pageUploaded(pageUrl, 0, "OK");
-    }
+    private ReviewServiceCallback callback;
 
     @Async
     public void reviewPage(@KeyRef String pageUrl) {
