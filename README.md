@@ -4,10 +4,10 @@
 It was developed on top of Java 17, Spring-Boot 3.0.13.
 
 
-### Documentation
+## Documentation
 More information can be found in project [wiki](https://github.com/jan-komrska/casecore/wiki)
 
-### Last version
+## Last version
 
 *MinuteFlow* packages are stored in [maven central repository](https://repo1.maven.org/maven2/org/minutetask/casecore/casecore/).
 
