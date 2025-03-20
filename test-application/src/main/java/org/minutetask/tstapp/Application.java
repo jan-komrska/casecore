@@ -23,6 +23,10 @@ package org.minutetask.tstapp;
 import org.minutetask.casecore.CaseCoreScan;
 import org.minutetask.casecore.CoreCaseConfiguration;
 import org.minutetask.casecore.UseCaseManager;
+import org.minutetask.tstapp.helloworld.EmperorFlow;
+import org.minutetask.tstapp.helloworld.KingFlow;
+import org.minutetask.tstapp.helloworld.PersonCase;
+import org.minutetask.tstapp.helloworld.PersonFlow;
 import org.minutetask.tstapp.process.BuildCase;
 import org.minutetask.tstapp.process.BuildFlow;
 import org.minutetask.tstapp.process.BuildFlowImpl;
@@ -66,13 +70,28 @@ public class Application {
     private UseCaseManager useCaseManager;
 
     @Autowired
+    private PersonFlow greetingService;
+
+    @Autowired
     private DocumentFlow documentFlow;
 
     @Autowired
     private BuildFlow buildFlow;
 
     @Transactional
-    public void publishDocument() throws InterruptedException {
+    public void helloWorld() {
+        PersonCase caesar = useCaseManager.saveUseCase(new PersonCase(null, "Caesar", EmperorFlow.class));
+        PersonCase charlemagne = useCaseManager.saveUseCase(new PersonCase(null, "Charlemagne", KingFlow.class));
+        //
+        greetingService.greeting("Caesar");
+        greetingService.greeting("Charlemagne");
+        //
+        useCaseManager.deleteUseCase(caesar);
+        useCaseManager.deleteUseCase(charlemagne);
+    }
+
+    @Transactional
+    public void publishDocument() {
         DocumentCase publishCase = new DocumentCase();
         publishCase.setDocumentId(1001l);
         publishCase.setFlow(PublishDocumentFlow.class);
@@ -83,7 +102,7 @@ public class Application {
     }
 
     @Transactional
-    public void reviewDocument() throws InterruptedException {
+    public void reviewDocument() {
         DocumentCase reviewCase = new DocumentCase();
         reviewCase.setDocumentId(1002l);
         reviewCase.setFlow(ReviewDocumentFlow.class);
@@ -94,7 +113,7 @@ public class Application {
     }
 
     @Transactional
-    public void buildProject() throws InterruptedException {
+    public void buildProject() {
         BuildCase buildCase = new BuildCase();
         buildCase.setProjectId(2001l);
         buildCase.setFlow(BuildFlowImpl.class);
@@ -106,6 +125,10 @@ public class Application {
     @Bean
     public CommandLineRunner commandLineRunner() {
         return args -> {
+            log.info("---");
+            self.helloWorld();
+            Thread.sleep(10000);
+            //
             log.info("---");
             self.publishDocument();
             Thread.sleep(10000);
