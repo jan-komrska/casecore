@@ -1,4 +1,4 @@
-package org.minutetask.tstapp.simple;
+package org.minutetask.tstapp.callback;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,29 +20,30 @@ package org.minutetask.tstapp.simple;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.annotation.ClosedRef;
+import org.minutetask.casecore.annotation.IdRef;
 import org.minutetask.casecore.annotation.KeyRef;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
+import org.minutetask.casecore.annotation.ServiceRef;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Slf4j
-@Service
-public class ReviewService {
-    @Autowired
-    private ReviewServiceCallback callback;
+@Getter
+@Setter
+@ToString
+public class DocumentCase {
+    @IdRef
+    private Long caseId;
 
-    @Async
-    public void reviewPage(@KeyRef String pageUrl) {
-        log.info("review of page {} started", pageUrl);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException ex) {
-            // DO NOTHING
-        }
-        log.info("review of page {} finished", pageUrl);
-        //
-        callback.pageReviewed(pageUrl, 10, "Great page!");
-    }
+    @ClosedRef
+    private boolean closed;
+
+    private Long documentId;
+
+    @KeyRef
+    private String pageUrl;
+
+    @ServiceRef(DocumentFlow.class)
+    private Class<? extends DocumentFlow> flow;
 }

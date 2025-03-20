@@ -1,4 +1,4 @@
-package org.minutetask.tstapp.simple;
+package org.minutetask.tstapp.callback;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,6 +20,7 @@ package org.minutetask.tstapp.simple;
  * =========================LICENSE_END==================================
  */
 
+import org.minutetask.casecore.annotation.KeyRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,20 +29,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class UploadService {
+public class ReviewService {
     @Autowired
-    private UploadServiceCallback callback;
+    private ReviewServiceCallback callback;
 
     @Async
-    public void uploadPage(String pageUrl, String pageContent) {
-        log.info("upload of page {} started", pageUrl);
+    public void reviewPage(@KeyRef String pageUrl) {
+        log.info("review of page {} started", pageUrl);
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
             // DO NOTHING
         }
-        log.info("upload of page {} finished", pageUrl);
+        log.info("review of page {} finished", pageUrl);
         //
-        callback.pageUploaded(pageUrl, 0, "OK");
+        callback.pageReviewed(pageUrl, 10, "Great page!");
     }
 }

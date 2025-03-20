@@ -1,4 +1,4 @@
-package org.minutetask.tstapp.simple;
+package org.minutetask.tstapp.callback;
 
 /*-
  * ========================LICENSE_START=================================
@@ -20,30 +20,12 @@ package org.minutetask.tstapp.simple;
  * =========================LICENSE_END==================================
  */
 
-import org.minutetask.casecore.annotation.ClosedRef;
-import org.minutetask.casecore.annotation.IdRef;
+import org.minutetask.casecore.annotation.ContractRef;
 import org.minutetask.casecore.annotation.KeyRef;
-import org.minutetask.casecore.annotation.ServiceRef;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-@Getter
-@Setter
-@ToString
-public class DocumentCase {
-    @IdRef
-    private Long caseId;
-
-    @ClosedRef
-    private boolean closed;
-
-    private Long documentId;
-
-    @KeyRef
-    private String pageUrl;
-
-    @ServiceRef(DocumentFlow.class)
-    private Class<? extends DocumentFlow> flow;
+@ContractRef
+public interface ReviewServiceCallback {
+    default public void pageReviewed(@KeyRef String pageUrl, int score, String message) {
+        throw new UnsupportedOperationException();
+    }
 }

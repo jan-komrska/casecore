@@ -1,4 +1,4 @@
-package org.minutetask.tstapp.simple;
+package org.minutetask.tstapp.callback;
 
 /*-
  * ========================LICENSE_START=================================
