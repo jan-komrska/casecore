@@ -1,11 +1,11 @@
 # CaseCore
 
-*CaseCore* is a small *spring-boot* extension for development of long-running processes and workflows.
+*CaseCore* is a small *spring-boot* extension for development of long-running processes and workflows. 
 It was developed on top of Java 17, Spring-Boot 3.0.13.
 
 
 ## Documentation
-More information can be found in project [wiki](https://github.com/jan-komrska/casecore/wiki)
+More information can be found in project [wiki](https://github.com/jan-komrska/casecore/wiki).
 
 ## Last version
 
