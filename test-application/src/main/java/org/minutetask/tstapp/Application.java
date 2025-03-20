@@ -70,7 +70,7 @@ public class Application {
     private UseCaseManager useCaseManager;
 
     @Autowired
-    private PersonFlow greetingService;
+    private PersonFlow personFlow;
 
     @Autowired
     private DocumentFlow documentFlow;
@@ -83,8 +83,8 @@ public class Application {
         PersonCase caesar = useCaseManager.saveUseCase(new PersonCase(null, "Caesar", EmperorFlow.class));
         PersonCase charlemagne = useCaseManager.saveUseCase(new PersonCase(null, "Charlemagne", KingFlow.class));
         //
-        greetingService.greeting("Caesar");
-        greetingService.greeting("Charlemagne");
+        personFlow.greeting("Caesar");
+        personFlow.greeting("Charlemagne");
         //
         useCaseManager.deleteUseCase(caesar);
         useCaseManager.deleteUseCase(charlemagne);
