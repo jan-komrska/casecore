@@ -25,7 +25,7 @@ import org.minutetask.casecore.annotation.KeyRef;
 
 @ContractRef
 public interface ReviewServiceCallback {
-    default public void reviewFinished(@KeyRef String pageUrl, int score, String message) {
+    default public void pageReviewed(@KeyRef String pageUrl, int score, String message) {
         throw new UnsupportedOperationException();
     }
 }

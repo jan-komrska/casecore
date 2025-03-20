@@ -67,7 +67,7 @@ public class ReviewDocumentFlow implements DocumentFlow, UploadServiceCallback {
     }
 
     @Override
-    public void reviewFinished(@IdRef String pageUrlAsCaseId, int score, String message) {
+    public void pageReviewed(@IdRef String pageUrlAsCaseId, int score, String message) {
         DocumentCase documentCase = useCaseManager.getUseCase(pageUrlAsCaseId, DocumentCase.class);
         log.info("received internal-review response [documentId={}, pageUrl={}, score={}]", //
                 documentCase.getDocumentId(), documentCase.getPageUrl(), score);

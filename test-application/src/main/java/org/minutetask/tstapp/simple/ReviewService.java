@@ -43,6 +43,6 @@ public class ReviewService {
         }
         log.info("review of page {} finished", pageUrl);
         //
-        callback.reviewFinished(pageUrl, 10, "Great page!");
+        callback.pageReviewed(pageUrl, 10, "Great page!");
     }
 }
