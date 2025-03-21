@@ -41,5 +41,5 @@ public class PersonCase {
     private String name;
 
     @ServiceRef(PersonFlow.class)
-    private Class<? extends PersonFlow> service;
+    private Class<? extends PersonFlow> flow;
 }
