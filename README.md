@@ -19,3 +19,8 @@ For the latest version please use following dependency:
   <version>0.5.2</version>
 </dependency>
 ```
+
+## Tutorial
+
+Please check following examples:
+- [Quick Start](https://github.com/jan-komrska/casecore/wiki/Quick-Start)
